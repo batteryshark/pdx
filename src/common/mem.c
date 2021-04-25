@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include "ntdll.h"
+#include "ntmin/ntdll.h"
 #else
 #include <dlfcn.h>
 #include <sys/mman.h>

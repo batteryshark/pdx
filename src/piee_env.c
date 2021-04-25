@@ -1,10 +1,12 @@
 #ifdef TARGET_OS_WINDOWS
 #include <Windows.h>
 #endif
-#include "common/iniparser.h"
-#include "common/dictionary.h"
+#include "common/iniparser/iniparser.h"
+#include "common/iniparser/dictionary.h"
 #include "common/mem.h"
 #include <string.h>
+
+
 
 static char path_to_config_file[1024] = {0x00};
 static dictionary* config = NULL;
@@ -338,7 +340,7 @@ int init_library(void){
     // Load Our Environment Configuration
     load_config();
     if(!config){return 0;}
-
+    
     // Perform any Syscall Hooks we Need at This Level
     #ifdef TARGET_OS_WINDOWS
     if (!inline_hook("advapi32.dll", "GetUserNameW", SYSCALL_STUB_SIZE, (void*)x_GetUserNameW, (void**)&advapi32_GetUserNameW)) { return FALSE; }
@@ -383,5 +385,5 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     return TRUE;
 }
 #else
-void __attribute__((constructor)) initialize(void){init_library();}
+int init_library(void) __attribute__((constructor));
 #endif
