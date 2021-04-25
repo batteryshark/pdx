@@ -1,31 +1,8 @@
 {
 	"version": "2.0.0",
-	"tasks": [{
-			"label": "envtest [Windows 32-bit]",
-			"type": "shell",
-			"command": [
-				"i686-w64-mingw32-gcc",
-				"-m32",
-				"-fshort-wchar",
-				"-I${workspaceFolder}/iniparser",
-				"${workspaceFolder}/iniparser/*.c",
-				"${workspaceFolder}/envtest.c",
-				"-static",
-				"-static-libgcc",
-				"-lgcc",
-				"-o ${workspaceFolder}/envtest.exe"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
+	"tasks": [
 		{
-			"label": "[Plugin] vxenvironment [Windows 64-bit]",
+			"label": "[Plugin] Environment [Windows 64-bit]",
 			"type": "shell",
 			"command": [
 				"x86_64-w64-mingw32-gcc",
@@ -35,12 +12,12 @@
 				"-fshort-wchar",
 				"-I${workspaceFolder}/common",
 				"${workspaceFolder}/common/*.c",
-				"${workspaceFolder}/vxenvironment.c",
+				"${workspaceFolder}/piee_env.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/x64/vxenvironment.dll"
+				"-o ${workspaceFolder}/plugins/x64/piee_env.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -52,7 +29,7 @@
 			}
 		},
 		{
-			"label": "[Plugin] vxenvironment [Windows 32-bit]",
+			"label": "[Plugin] Environment [Windows 32-bit]",
 			"type": "shell",
 			"command": [
 				"i686-w64-mingw32-gcc",
@@ -63,12 +40,12 @@
 				"-fshort-wchar",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/vxenvironment.c",
+				"${workspaceFolder}/src/piee_env.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/x86/vxenvironment.dll"
+				"-o ${workspaceFolder}/plugins/x86/piee_env.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -80,7 +57,7 @@
 			}
 		},
 		{
-			"label": "[Plugin] VXEnvironment [Linux 64-bit]",
+			"label": "[Plugin] Environment [Linux 64-bit]",
 			"type": "shell",
 			"command": [
 				"/usr/bin/gcc",
@@ -89,11 +66,11 @@
 				"-fPIC",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/vxenvironment.c",
+				"${workspaceFolder}/src/piee_env.c",
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/x64/vxenvironment.so"
+				"-o ${workspaceFolder}/plugins/x64/piee_env.so"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -105,7 +82,7 @@
 			}
 		},
 		{
-			"label": "[Plugin] VXEnvironment [Linux 32-bit]",
+			"label": "[Plugin] Environment [Linux 32-bit]",
 			"type": "shell",
 			"command": [
 				"/usr/bin/gcc",
@@ -114,11 +91,11 @@
 				"-DTARGET_ARCH_32",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/vxenvironment.c",
+				"${workspaceFolder}/src/piee_env.c",
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/x86/vxenvironment.so"
+				"-o ${workspaceFolder}/plugins/x86/piee_env.so"
 			],
 			"presentation": {
 				"reveal": "always",
