@@ -11,7 +11,9 @@
 				"-DTARGET_ARCH_64",
 				"-fshort-wchar",
 				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",
 				"${workspaceFolder}/src/piee_env.c",
 				"-static",
 				"-static-libgcc",
@@ -39,7 +41,9 @@
 				"-DTARGET_ARCH_32",
 				"-fshort-wchar",
 				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/ntmin/*.c","${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",				
 				"${workspaceFolder}/src/piee_env.c",
 				"-static",
 				"-static-libgcc",
@@ -66,6 +70,7 @@
 				"-fPIC",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",				
 				"${workspaceFolder}/src/piee_env.c",
 				"-static-libgcc",
 				"-lgcc",
@@ -91,6 +96,7 @@
 				"-DTARGET_ARCH_32",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",				
 				"${workspaceFolder}/src/piee_env.c",
 				"-static-libgcc",
 				"-lgcc",
@@ -115,6 +121,7 @@
                 "-DTARGET_ARCH_64",
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",				
 				"${workspaceFolder}/src/piee_env.c",
                 "-o ${workspaceFolder}/plugins/piee_env64.dylib"
             ],
@@ -126,6 +133,71 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }		
+        },
+        {
+            "label": "[Loader] Bootstrap [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+                "-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_64",
+                "-shared",
+                "-fshort-wchar",           
+                "'-Wl,--subsystem,native'",                                
+                "-nostartfiles", 
+                "-nostdlib",
+                "'-Wl,-eDllMain'",          
+                "-I${workspaceFolder}/src",
+                "${workspaceFolder}/src/common/ntmin/*.c",
+                "${workspaceFolder}/src/common/*.c",
+                "${workspaceFolder}/src/bootstrap.c",
+                "-static", 
+                "-static-libgcc",
+                "-lntdll",
+                "-lgcc",
+                "-o ${workspaceFolder}/loaders/bootstrap64.dll"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "[Loader] Bootstrap [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+                "-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_32",
+                "-m32",
+                "-shared",
+                "-fshort-wchar",           
+                "'-Wl,--subsystem,native'",                                
+                "-nostartfiles", 
+                "-nostdlib",
+                "'-Wl,-e_DllMain@12'",          
+                "-I${workspaceFolder}/src",
+                "${workspaceFolder}/src/common/ntmin/*.c",
+                "${workspaceFolder}/src/common/*.c",
+                "${workspaceFolder}/src/bootstrap.c",
+                "-static", 
+                "-static-libgcc",
+                "-lntdll",
+                "-lgcc",
+                "-o ${workspaceFolder}/loaders/bootstrap32.dll"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }			
 	]
 }

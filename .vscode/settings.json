@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "iniparser.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "ntdll.h": "c"
     }
 }
