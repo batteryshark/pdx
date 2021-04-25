@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "iniparser.h": "c"
+        "iniparser.h": "c",
+        "string.h": "c"
     }
 }

@@ -10,14 +10,14 @@
 				"-DTARGET_OS_WINDOWS",
 				"-DTARGET_ARCH_64",
 				"-fshort-wchar",
-				"-I${workspaceFolder}/common",
-				"${workspaceFolder}/common/*.c",
-				"${workspaceFolder}/piee_env.c",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/piee_env.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/x64/piee_env.dll"
+				"-o ${workspaceFolder}/plugins/piee_env64.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -45,7 +45,7 @@
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/x86/piee_env.dll"
+				"-o ${workspaceFolder}/plugins/piee_env32.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -70,7 +70,7 @@
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/x64/piee_env.so"
+				"-o ${workspaceFolder}/plugins/piee_env64.so"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -95,7 +95,7 @@
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/x86/piee_env.so"
+				"-o ${workspaceFolder}/plugins/piee_env32.so"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -116,7 +116,7 @@
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/piee_env.c",
-                "-o ${workspaceFolder}/plugins/x64/piee_env.dylib"
+                "-o ${workspaceFolder}/plugins/piee_env64.dylib"
             ],
             "presentation": {
                 "reveal": "always",
