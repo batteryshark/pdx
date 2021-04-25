@@ -1,6 +1,50 @@
 {
 	"version": "2.0.0",
 	"tasks": [
+        {
+            // VX LOADER [Windows]
+            "label": "[Loader] DropKick [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+                "-DTARGET_ARCH_64",
+                "-fshort-wchar",              
+                "${workspaceFolder}/src/dropkick.c",
+                "-static",      
+                "-static-libgcc",                  
+                "-o ${workspaceFolder}/loaders/dropkick64.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },        
+        {
+            "label": "[Loader] DropKick [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+                "-m32",
+                "-DTARGET_ARCH_32",
+                "-fshort-wchar",              
+                "${workspaceFolder}/src/dropkick.c",
+                "-static",      
+                "-static-libgcc",                  
+                "-o ${workspaceFolder}/loaders/dropkick32.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },		
 		{
 			"label": "[Plugin] Environment [Windows 64-bit]",
 			"type": "shell",
@@ -31,6 +75,35 @@
 			}
 		},
 		{
+			"label": "[Plugin] Process [Windows 64-bit]",
+			"type": "shell",
+			"command": [
+				"x86_64-w64-mingw32-gcc",
+				"-shared",
+				"-DTARGET_OS_WINDOWS",
+				"-DTARGET_ARCH_64",
+				"-fshort-wchar",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/ntmin/*.c",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",
+				"${workspaceFolder}/src/piee_proc.c",
+				"-static",
+				"-static-libgcc",
+				"-lgcc",
+				"-lntdll",
+				"-o ${workspaceFolder}/plugins/piee_proc64.dll"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},		
+		{
 			"label": "[Plugin] Environment [Windows 32-bit]",
 			"type": "shell",
 			"command": [
@@ -41,7 +114,7 @@
 				"-DTARGET_ARCH_32",
 				"-fshort-wchar",
 				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/ntmin/*.c","${workspaceFolder}/src/common/ntmin/*.c",
+				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
 				"${workspaceFolder}/src/piee_env.c",
@@ -60,6 +133,36 @@
 				"isDefault": true
 			}
 		},
+		{
+			"label": "[Plugin] Process [Windows 32-bit]",
+			"type": "shell",
+			"command": [
+				"i686-w64-mingw32-gcc",
+				"-m32",
+				"-shared",
+				"-DTARGET_OS_WINDOWS",
+				"-DTARGET_ARCH_32",
+				"-fshort-wchar",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/ntmin/*.c",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/common/iniparser/*.c",				
+				"${workspaceFolder}/src/piee_proc.c",
+				"-static",
+				"-static-libgcc",
+				"-lgcc",
+				"-lntdll",
+				"-o ${workspaceFolder}/plugins/piee_proc32.dll"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},		
 		{
 			"label": "[Plugin] Environment [Linux 64-bit]",
 			"type": "shell",
