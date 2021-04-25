@@ -10,8 +10,8 @@ static char path_to_config_file[1024] = {0x00};
 static dictionary* config = NULL;
 
 void get_config_file_path(){
-    if(getenv("PIEE_ENV_CONFIG")){
-        strcpy(path_to_config_file,getenv("PIEE_ENV_CONFIG"));
+    if(getenv("PIEE_ENV")){
+        strcpy(path_to_config_file,getenv("PIEE_ENV"));
     }else{
     // Fallback to CWD
     strcpy(path_to_config_file,"piee_env.ini");

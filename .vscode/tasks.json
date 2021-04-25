@@ -105,6 +105,27 @@
 				"kind": "build",
 				"isDefault": true
 			}
-		}
+		},
+        {
+            "label": "[Plugin] Environment [MacOSX 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-shared",
+                "-DTARGET_ARCH_64",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/piee_env.c",
+                "-o ${workspaceFolder}/plugins/x64/piee_env.dylib"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }		
 	]
 }
