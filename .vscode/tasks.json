@@ -1,0 +1,133 @@
+{
+	"version": "2.0.0",
+	"tasks": [{
+			"label": "envtest [Windows 32-bit]",
+			"type": "shell",
+			"command": [
+				"i686-w64-mingw32-gcc",
+				"-m32",
+				"-fshort-wchar",
+				"-I${workspaceFolder}/iniparser",
+				"${workspaceFolder}/iniparser/*.c",
+				"${workspaceFolder}/envtest.c",
+				"-static",
+				"-static-libgcc",
+				"-lgcc",
+				"-o ${workspaceFolder}/envtest.exe"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "[Plugin] vxenvironment [Windows 64-bit]",
+			"type": "shell",
+			"command": [
+				"x86_64-w64-mingw32-gcc",
+				"-shared",
+				"-DTARGET_OS_WINDOWS",
+				"-DTARGET_ARCH_64",
+				"-fshort-wchar",
+				"-I${workspaceFolder}/common",
+				"${workspaceFolder}/common/*.c",
+				"${workspaceFolder}/vxenvironment.c",
+				"-static",
+				"-static-libgcc",
+				"-lgcc",
+				"-lntdll",
+				"-o ${workspaceFolder}/plugins/x64/vxenvironment.dll"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "[Plugin] vxenvironment [Windows 32-bit]",
+			"type": "shell",
+			"command": [
+				"i686-w64-mingw32-gcc",
+				"-m32",
+				"-shared",
+				"-DTARGET_OS_WINDOWS",
+				"-DTARGET_ARCH_32",
+				"-fshort-wchar",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/vxenvironment.c",
+				"-static",
+				"-static-libgcc",
+				"-lgcc",
+				"-lntdll",
+				"-o ${workspaceFolder}/plugins/x86/vxenvironment.dll"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "[Plugin] VXEnvironment [Linux 64-bit]",
+			"type": "shell",
+			"command": [
+				"/usr/bin/gcc",
+				"-shared",
+				"-DTARGET_ARCH_64",
+				"-fPIC",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/vxenvironment.c",
+				"-static-libgcc",
+				"-lgcc",
+				"-ldl",
+				"-o ${workspaceFolder}/plugins/x64/vxenvironment.so"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		},
+		{
+			"label": "[Plugin] VXEnvironment [Linux 32-bit]",
+			"type": "shell",
+			"command": [
+				"/usr/bin/gcc",
+				"-shared",
+				"-m32",
+				"-DTARGET_ARCH_32",
+				"-I${workspaceFolder}/src/common",
+				"${workspaceFolder}/src/common/*.c",
+				"${workspaceFolder}/src/vxenvironment.c",
+				"-static-libgcc",
+				"-lgcc",
+				"-ldl",
+				"-o ${workspaceFolder}/plugins/x86/vxenvironment.so"
+			],
+			"presentation": {
+				"reveal": "always",
+				"panel": "shared"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}
