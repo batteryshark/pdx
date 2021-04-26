@@ -260,10 +260,17 @@ BOOL nt_query_mvkey(HANDLE KeyHandle, PKEY_VALUE_ENTRY ValueEntries, ULONG Entry
     return FALSE;   
 }
 
+/*
+        KeyBasicInformation,                    // 0x00
+        KeyNodeInformation,                     // 0x01
+        KeyFullInformation,                     // 0x02
+        
+        KeyCachedInformation,                   // 0x04
+        KeyFlagsInformation,                    // 0x05
+*/
 BOOL nt_query_key(HANDLE KeyHandle, KEY_INFORMATION_CLASS KeyInformationClass, PVOID KeyInformation, ULONG Length, PULONG ResultLength,PNTSTATUS status){
     char* path_to_monitored_key = regentry_path_lookup(KeyHandle);
     if(!path_to_monitored_key){return FALSE;}
-    OutputDebugStringA("OH SHIT OH SHIT OH SHIT");
     // If we're doing this class, we can just do it here.
     if(KeyInformationClass == KeyNameInformation){
         KEY_NAME_INFORMATION* KeyInformation;
@@ -295,10 +302,11 @@ BOOL nt_query_key(HANDLE KeyHandle, KEY_INFORMATION_CLASS KeyInformationClass, P
         KeyInformation->NameLength = total_sz - 4;
         ChartoWideChar(path_to_monitored_key,KeyInformation->Name);
         *status = 0;
-        char res[1024] = {0x00};
-        // TO DO
-        OutputDebugStringA("OH NO WE FUCKED UP!!!");
         return TRUE;
+    }else{
+        char msg[64] = {0x00};
+        wsprintfA(msg,"Unhandled Key Info Class: %d\n",KeyInformationClass);
+        OutputDebugStringA(msg);
     }
     //REG_QUERY_KEY
     return FALSE;     
