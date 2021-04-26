@@ -22,7 +22,96 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },        
+        },     
+        {
+            // VX LOADER [Windows]
+            "label": "[Test] Registry [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_64",
+                "-fshort-wchar",              
+				"-I${workspaceFolder}/src/common",				
+				"${workspaceFolder}/src/registry/*.c",
+				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
+				"${workspaceFolder}/src/common/strutils.c",				
+				"${workspaceFolder}/src/common/mem.c",						
+				"${workspaceFolder}/src/common/iniparser/*.c",
+                "${workspaceFolder}/src/test_registry.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/test_registry.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },  	
+        {
+            "label": "[Plugin] Registry [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+				"-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_32",
+				"-m32",
+				"-shared",
+                "-fshort-wchar",              
+				"-I${workspaceFolder}/src/common",				
+				"${workspaceFolder}/src/registry/*.c",
+				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
+				"${workspaceFolder}/src/common/strutils.c",				
+				"${workspaceFolder}/src/common/mem.c",						
+				"${workspaceFolder}/src/common/iniparser/*.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/plugins/piee_reg32.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },  			   
+        {
+            "label": "[Plugin] Registry [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_64",
+				"-shared",
+                "-fshort-wchar",              
+				"-I${workspaceFolder}/src/common",				
+				"${workspaceFolder}/src/registry/*.c",
+				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
+				"${workspaceFolder}/src/common/strutils.c",				
+				"${workspaceFolder}/src/common/mem.c",						
+				"${workspaceFolder}/src/common/iniparser/*.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/plugins/piee_reg64.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },  			   		
         {
             "label": "[Loader] DropKick [Windows 32-bit]",
             "type": "shell",
