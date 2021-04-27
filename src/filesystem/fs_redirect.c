@@ -40,6 +40,8 @@ int path_ignored(char* in_path){
 
 static char fs_root[1024] = {0x00};
 static char fs_home[1024] = {0x00};
+static int fs_write_isolate = 1;
+static int fs_read_isolate = 0;
 static int fs_init = 0;
 
 
@@ -113,6 +115,32 @@ void init_fs_home(){
     if(!env_fs_home){return;}        
     strcpy(fs_home,env_fs_home);
     #endif
+}
+
+void init_fs_mode(){
+    const char* env_fs_mode = getenv("PIEE_FS_MODE");
+    if(!env_fs_mode){return;}
+    int fs_mode = atoi(env_fs_mode);
+    switch(fs_mode){
+        case 1:
+            fs_read_isolate = 0;
+            fs_write_isolate = 1;
+            break;
+        case 2:
+            fs_read_isolate = 0;
+            fs_write_isolate = 0;
+            break;
+        case 3:
+            fs_read_isolate = 1;
+            fs_write_isolate = 0;
+            break;
+        case 4:
+            fs_read_isolate = 1;
+            fs_write_isolate = 1;
+            break;            
+        default:
+            break;
+    }    
 }
 
 void init_fs(){
@@ -301,7 +329,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
 
     // Read Only Handling First
     if(is_read && !is_write){
-        if(sp->is_redirected_subpath || !sp->redirected_path_exists){
+        if(!fs_read_isolate && (sp->is_redirected_subpath || !sp->redirected_path_exists)){
             free(sp);
             free(*redirected_path);
             return 0;
@@ -323,13 +351,14 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
 
     // If the real write path already exists, we're going to just bypass and write to the real path
     // We may end up reverting this later or making it a configuration option
-    /*
-    if(sp->original_path_exists && strcmp(sp->original_path,sp->redirected_path)){
-        free(sp);
-        free(*redirected_path);
-        return 0;        
+    if(!fs_write_isolate){
+        if(sp->original_path_exists && strcmp(sp->original_path,sp->redirected_path)){
+            free(sp);
+            free(*redirected_path);
+            return 0;        
+        }
     }
-    */
+
 
     // Because we're going to write a file, its parent needs to exist...
     if(sp->create_parent_path){
