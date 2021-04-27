@@ -114,6 +114,109 @@ NTSTATUS wrapped_createfile(wchar_t* path,PHANDLE hObject, DWORD add_create_opti
     return NtCreateFile(hObject, desired_access , &pathOa,&IoSb,NULL, 0, 0, FILE_OPEN,  create_options, NULL, 0);
 }
 
+void delete_file_native(wchar_t* path){
+    OBJECT_ATTRIBUTES pathOa = {0x00};
+    UNICODE_STRING uPath;
+    RtlInitUnicodeString(&uPath,path);
+    pathOa.Length = sizeof(pathOa);
+    pathOa.ObjectName = &uPath;
+    pathOa.Attributes = OBJ_CASE_INSENSITIVE;
+    pathOa.RootDirectory = NULL;
+    IO_STATUS_BLOCK IoSb = {0};
+    DWORD desired_access =  DELETE | FILE_READ_ATTRIBUTES;
+    HANDLE hObject = 0;
+    #ifdef BYPASS_ENABLED
+    desired_access |= FLAG_BYPASS;
+    #endif    
+    NTSTATUS status = NtOpenFile( &hObject,desired_access,&pathOa,&IoSb, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, FILE_NON_DIRECTORY_FILE | FILE_OPEN_FOR_BACKUP_INTENT | FILE_OPEN_REPARSE_POINT );
+    if(status){return;}
+    FILE_DISPOSITION_INFO fdi = {0x00};
+    fdi.DeleteFile = 1;
+    IO_STATUS_BLOCK IoSb2 = {0};
+    NtSetInformationFile( hObject, &IoSb2, &fdi, sizeof(fdi), FileDispositionInformation);
+    if(hObject){
+        NtClose(hObject);
+    }
+}
+
+
+void copy_file_native(wchar_t* src_path, wchar_t* dst_path){
+    OBJECT_ATTRIBUTES pathOa = {0x00};
+    UNICODE_STRING uPath;
+    RtlInitUnicodeString(&uPath,src_path);
+    pathOa.Length = sizeof(pathOa);
+    pathOa.ObjectName = &uPath;
+    pathOa.Attributes = OBJ_CASE_INSENSITIVE;
+    pathOa.RootDirectory = NULL;
+    IO_STATUS_BLOCK IoSb = {0};
+    DWORD desired_access_src =  FILE_READ_ATTRIBUTES | GENERIC_READ | SYNCHRONIZE;
+    HANDLE hSrc = 0;
+    #ifdef BYPASS_ENABLED
+    desired_access |= FLAG_BYPASS;
+    #endif    
+
+    NTSTATUS status = NtCreateFile(&hSrc,desired_access_src,&pathOa,&IoSb, NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE, FILE_OPEN, FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0 );
+    if(status){return;}
+    // Get Size of Source File
+    FILE_STANDARD_INFO fsi = {0x00};
+    IO_STATUS_BLOCK IoSb2 = {0};    
+    status = NtQueryInformationFile(hSrc,&IoSb2,&fsi,sizeof(fsi),FileStandardInformation);
+    if(status){
+        if(hSrc){
+            NtClose(hSrc);
+            return;
+        }
+    }
+    // Open Our Destination
+    OBJECT_ATTRIBUTES pathOa2 = {0x00};
+    UNICODE_STRING uPath2;
+    RtlInitUnicodeString(&uPath2,dst_path);
+    pathOa2.Length = sizeof(pathOa2);
+    pathOa2.ObjectName = &uPath2;
+    pathOa2.Attributes = OBJ_CASE_INSENSITIVE;
+    pathOa2.RootDirectory = NULL;
+    IO_STATUS_BLOCK IoSb3 = {0};
+    DWORD desired_access_dst = FILE_READ_ATTRIBUTES | GENERIC_WRITE | SYNCHRONIZE;
+    HANDLE hDst = 0;
+    #ifdef BYPASS_ENABLED
+    desired_access |= FLAG_BYPASS;
+    #endif    
+    status = NtCreateFile(&hDst,desired_access_dst,&pathOa2,&IoSb3,NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE, FILE_OVERWRITE_IF, FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0 );
+    if(status){
+        NtClose(hSrc);
+        return;
+    }
+
+
+    // Ok - time to start writing!
+    IO_STATUS_BLOCK IoSbSrc = {0};    
+    IO_STATUS_BLOCK IoSbDst = {0};    
+    memset(&IoSbSrc,0x00,sizeof(IO_STATUS_BLOCK));
+    memset(&IoSbDst,0x00,sizeof(IO_STATUS_BLOCK));  
+    // Set Both Files to the Beginning
+    FILE_POSITION_INFORMATION fpi = {0x00};
+
+    NtSetInformationFile(hSrc,&IoSbSrc,&fpi,sizeof(fpi),FilePositionInformation);
+    NtSetInformationFile(hDst,&IoSbDst,&fpi,sizeof(fpi),FilePositionInformation);
+
+    unsigned int chunk_size = (1024*1024); // This is what the NTKernel does... seems small
+    unsigned char* data_buffer = malloc(chunk_size);
+    unsigned long long offset = 0;
+    memset(&IoSbSrc,0x00,sizeof(IO_STATUS_BLOCK));
+    memset(&IoSbDst,0x00,sizeof(IO_STATUS_BLOCK));
+    while(offset < fsi.EndOfFile.QuadPart){
+        if((fsi.EndOfFile.QuadPart - offset) < chunk_size){
+            chunk_size = fsi.EndOfFile.QuadPart - offset;
+        }
+        NtReadFile(hSrc,NULL, NULL, NULL,&IoSbSrc,data_buffer,chunk_size,NULL, NULL);
+        NtWriteFile(hDst,NULL, NULL, NULL,&IoSbDst,data_buffer,chunk_size,NULL, NULL);
+        offset += chunk_size;
+    }
+    NtClose(hSrc);
+    NtClose(hDst);
+}
+
+
 BOOL get_device_path_from_handle(HANDLE hObject, POBJECT_NAME_INFORMATION* pobj) {
     ULONG ReturnLength = 0;
     ULONG InfoLength = 0;
@@ -296,4 +399,18 @@ void makedir(char* path){
     wchar_t w_in_path[1024] = {0x00};    
     ChartoWideChar(path,w_in_path);   
     wrapped_createdir(w_in_path);
+}
+
+void delete_path(char* path){
+    wchar_t w_in_path[1024] = {0x00};    
+    ChartoWideChar(path,w_in_path);  
+    delete_file_native(w_in_path);
+}
+
+void copy_file(char* src_path, char* dst_path){
+    wchar_t w_src_path[1024] = {0x00};    
+    wchar_t w_dst_path[1024] = {0x00};    
+    ChartoWideChar(src_path,w_src_path);  
+    ChartoWideChar(dst_path,w_dst_path);  
+    copy_file_native(w_src_path,w_dst_path);
 }

@@ -126,6 +126,7 @@ typedef struct _PIEE_PATH{
     char original_parent[1024];
     char redirected_parent[1024];
     char resolved_original_path[1024];
+    int resolved_original_path_exists;
     int original_path_exists;
     int original_path_is_symlink;
     int original_parent_exists;
@@ -246,7 +247,7 @@ void generate_path_info(PPIEE_PATH sp){
         sp->redirected_path_exists = sp->redirected_parent_exists;
     }else{
         sp->original_path_is_symlink = path_is_symlink(sp->original_path);
-        if(sp->original_path_exists && sp->original_path_is_symlink){
+        if(sp->original_path_exists){
             resolve_abspath(sp->original_path,sp->resolved_original_path,1);
         }
         if(sp->redirected_path_is_symlink){
@@ -254,6 +255,7 @@ void generate_path_info(PPIEE_PATH sp){
         }
     }
     sp->create_parent_path = (sp->original_parent_exists && ! sp->redirected_parent_exists);
+    sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
 }
 
 void print_sp_info(PPIEE_PATH sp){
@@ -271,9 +273,11 @@ void print_sp_info(PPIEE_PATH sp){
     printf("Redirected Parent: %s\n",sp->redirected_parent);
     printf("Redirected Parent Exists: %d\n",sp->redirected_parent_exists);  
     printf("Resolved Original Path: %s\n",sp->resolved_original_path);
+    printf("Resolved Original Path Exists: %d\n",sp->resolved_original_path_exists);
     printf("Should Create Parent Path: %d\n",sp->create_parent_path);
     printf("--------\n");
 }
+
 
 
 int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist, char** redirected_path){
@@ -286,7 +290,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     if(!fs_root){return 0;}
     // Check ignore list and return at this point.    
     if(path_ignored(in_abspath)){return 0;}    
-    printf("in abspath: %s\n",in_abspath);
+
     PPIEE_PATH sp = calloc(1,sizeof(PIEE_PATH));
     strcpy(sp->original_path,in_abspath);
     generate_path_info(sp);
@@ -294,21 +298,66 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     print_sp_info(sp);
     // 'Fix' for access case
     if(!is_read && !is_write){is_read = 1;}
-    
+
     // Read Only Handling First
     if(is_read && !is_write){
-        
-    }
-    if(is_write){
-        if(sp->create_parent_path){
-            create_parent_path(sp->redirected_parent);
+        if(sp->is_redirected_subpath || !sp->redirected_path_exists){
+            free(sp);
+            free(*redirected_path);
+            return 0;
         }
+        free(sp);
+        return 1;
     }
+
+    // From this Point Onward - We're in WriteLand!
+    
+    // If this is Windows and the path isn't a filesystem path (e.g. no :), we'll skip it for now...
+    #ifdef TARGET_OS_WINDOWS
+    if(!strstr(in_abspath,":")){
+            free(sp);
+            free(*redirected_path);
+            return 0;
+    }
+    #endif
 
     // If the real write path already exists, we're going to just bypass and write to the real path
     // We may end up reverting this later or making it a configuration option
+    /*
+    if(sp->original_path_exists && strcmp(sp->original_path,sp->redirected_path)){
+        free(sp);
+        free(*redirected_path);
+        return 0;        
+    }
+    */
+
+    // Because we're going to write a file, its parent needs to exist...
+    if(sp->create_parent_path){
+        create_parent_path(sp->redirected_parent);
+    }
+
+    // If it's write-only (i.e. not read) or readwrite, we need to delete the symlink if it exists
+    // Also, at this point, we're done if this isn't readwrite
+    if(!is_read){
+        if(sp->redirected_path_is_symlink){
+            delete_path(sp->redirected_path);
+        }
+        free(sp);
+        return 1;        
+    }
+
+    // From this point onward, we're in READWRITE LAND!!!
+    if(strlen(sp->resolved_original_path) && sp->resolved_original_path_exists && !is_directory){
+        if(sp->redirected_path_is_symlink){
+            delete_path(sp->redirected_path);
+        }
+        if(strcmp(sp->resolved_original_path,sp->redirected_path)){
+            // Copy Original File
+            //printf("Copy File: %s => %s\n",sp->resolved_original_path,sp->redirected_path);
+            copy_file(sp->resolved_original_path,sp->redirected_path);
+        }
+    }
+
     free(sp);
-    return 0;
+    return 1;
 }
-
-

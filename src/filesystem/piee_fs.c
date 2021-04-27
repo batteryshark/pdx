@@ -50,7 +50,7 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
         }
     }
     if(DesiredAccess & FLAG_BYPASS){
-        DesiredAccess &= ~ FLAG_BYPASS;
+        DesiredAccess &= ~FLAG_BYPASS;
     }
     return ntdll_NtCreateFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
 }
@@ -58,7 +58,7 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
 
 NTSTATUS __stdcall x_NtOpenFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions) {
         
-        if (ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
+        if (!(DesiredAccess & FLAG_BYPASS) && ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
 
             UNICODE_STRING redirected_path = {0};
 
@@ -82,6 +82,9 @@ NTSTATUS __stdcall x_NtOpenFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, P
             }
         }
 
+    if(DesiredAccess & FLAG_BYPASS){
+            DesiredAccess &= ~FLAG_BYPASS;
+    }
     return ntdll_NtOpenFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, ShareAccess, OpenOptions);
 }
 

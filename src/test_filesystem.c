@@ -17,8 +17,13 @@ int main(int argc, char *argv[]){
         
     putenv("PIEE_FS_ROOT=c:\\tmp\\vx\\00000000");
     char* redirected_path = NULL;
-    int res = fs_redirect(argv[1],0, 1,0, 0, 0, &redirected_path);
-    printf("Redirected: %d %s\n",res,redirected_path);
+    int res = fs_redirect(argv[1],0, 1,1, 0, 0, &redirected_path);
+    if(res){
+        printf("Redirected: %d %s\n",res,redirected_path);
+    }else{
+        printf("Bypass\n");
+    }
+    
     //create_parent_path("\\??\\D:\\new\\paths\\are\\fun");
     return 0;
 }
