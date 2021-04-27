@@ -54,6 +54,38 @@
             }
         },  	
         {
+            // VX LOADER [Windows]
+            "label": "[Test] Filesystem [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-DTARGET_OS_WINDOWS",
+                "-DTARGET_ARCH_64",
+				"-DFAT_NT",
+                "-fshort-wchar",              
+				"-I${workspaceFolder}/src/common",				
+				//"${workspaceFolder}/src/filesystem/fs_glue_win.c",
+				"${workspaceFolder}/src/filesystem/fs_redirect.c",
+				"${workspaceFolder}/src/filesystem/fs_utils_win.c",
+				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
+				"${workspaceFolder}/src/common/strutils.c",				
+				"${workspaceFolder}/src/common/mem.c",						
+                "${workspaceFolder}/src/test_filesystem.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/test_filesystem.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },  			
+        {
             "label": "[Plugin] Registry [Windows 32-bit]",
             "type": "shell",
             "command": [

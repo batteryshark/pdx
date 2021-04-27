@@ -2,6 +2,7 @@
     "files.associations": {
         "iniparser.h": "c",
         "string.h": "c",
-        "ntdll.h": "c"
+        "ntdll.h": "c",
+        "fs_redirect.h": "c"
     }
 }
