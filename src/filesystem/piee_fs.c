@@ -1,8 +1,10 @@
 // Filesystem Redirection for PIEE
+#include "fs_utils_win.h"
+#include "fs_glue.h"
+#include "../common/mem.h"
+#ifdef TARGET_OS_WINDOWS
 #include <Windows.h>
 #include "../common/ntmin/ntmin.h"
-
-#include "fs_glue.h"
 
 typedef NTSTATUS __stdcall tNtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, PLARGE_INTEGER AllocationSize, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PVOID EaBuffer, ULONG EaLength);
 typedef NTSTATUS __stdcall tNtOpenFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, ULONG ShareAccess, ULONG OpenOptions);
@@ -22,6 +24,43 @@ static tNtQueryAttributesFile* ntdll_NtQueryAttributesFile = NULL;
 static tNtQueryFullAttributesFile* ntdll_NtQueryFullAttributesFile = NULL;
 static tLdrLoadDll* ntdll_LdrLoadDll = NULL;
 
+// Helpers - Windows
+// Helpers
+BOOL get_is_read(DWORD DesiredAccess) {
+    if (DesiredAccess & 1) { return TRUE; }
+    if (DesiredAccess & 4) { return TRUE; }
+    if (DesiredAccess & 0x20) { return TRUE; }
+    if (DesiredAccess & 0x80) { return TRUE; }
+    if (DesiredAccess & READ_CONTROL) {return TRUE;}
+    if (DesiredAccess & GENERIC_READ) { return TRUE; }
+    if (DesiredAccess & GENERIC_EXECUTE) { return TRUE; }
+    return FALSE;
+}
+
+BOOL get_is_write(DWORD DesiredAccess) {
+    if (DesiredAccess & 2) { return TRUE; }
+    if (DesiredAccess & 4) { return TRUE; }
+    if (DesiredAccess & 0x40) { return TRUE; }
+    if (DesiredAccess & 0x100) { return TRUE; }
+    if (DesiredAccess & 0x00010000) { return TRUE; }
+    if (DesiredAccess & GENERIC_WRITE) { return TRUE; }
+    return FALSE;
+}
+
+BOOL get_is_directory(DWORD options){
+    return options & FILE_DIRECTORY_FILE;
+}
+
+BOOL get_fail_if_exists(DWORD flags){
+    if(flags & FILE_CREATE){return TRUE;}
+    return FALSE;
+}
+
+BOOL get_fail_if_not_exists(DWORD flags){
+    if(flags & FILE_OPEN){return TRUE;}
+    if(flags & FILE_OVERWRITE){return TRUE;}
+    return FALSE;
+}
 
 // Bindings
 NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, PLARGE_INTEGER AllocationSize, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PVOID EaBuffer, ULONG EaLength) {
@@ -29,13 +68,16 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
     if (!(DesiredAccess & FLAG_BYPASS) && ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
 
         UNICODE_STRING redirected_path = {0};
-
-        BOOL is_read = get_is_read(DesiredAccess);
-        BOOL is_write = get_is_write(DesiredAccess);
-        BOOL is_directory = get_is_directory(CreateOptions);
-
-        if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write, CreateDisposition, &redirected_path)) {
-
+        if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, 
+                ObjectAttributes->ObjectName->Length, 
+                ObjectAttributes->RootDirectory, 
+                get_is_directory(CreateOptions), 
+                get_is_read(DesiredAccess), 
+                get_is_write(DesiredAccess), 
+                get_fail_if_exists(CreateDisposition),
+                get_fail_if_not_exists(CreateDisposition),
+                &redirected_path)) {
+            
             PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
             HANDLE orig_root = ObjectAttributes->RootDirectory;
             ObjectAttributes->RootDirectory = NULL;
@@ -60,14 +102,16 @@ NTSTATUS __stdcall x_NtOpenFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, P
         
         if (!(DesiredAccess & FLAG_BYPASS) && ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
 
-            UNICODE_STRING redirected_path = {0};
-
-            BOOL is_read = get_is_read(DesiredAccess);
-            BOOL is_write = get_is_write(DesiredAccess);
-            BOOL is_directory = get_is_directory(OpenOptions);
-
-            if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
-
+        UNICODE_STRING redirected_path = {0};
+        if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, 
+                ObjectAttributes->ObjectName->Length, 
+                ObjectAttributes->RootDirectory, 
+                get_is_directory(OpenOptions), 
+                get_is_read(DesiredAccess), 
+                get_is_write(DesiredAccess), 
+                0,
+                0,
+                &redirected_path)) {
                 PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
                 PVOID orig_root = ObjectAttributes->RootDirectory;
                 ObjectAttributes->RootDirectory = NULL;
@@ -91,13 +135,8 @@ NTSTATUS __stdcall x_NtOpenFile(PHANDLE FileHandle, ACCESS_MASK DesiredAccess, P
 NTSTATUS __stdcall x_NtOpenDirectoryObject(PHANDLE DirectoryHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes) {
 
     if (ObjectAttributes && ObjectAttributes->ObjectName) {
-        UNICODE_STRING redirected_path = {0};
-        BOOL is_read = get_is_read(DesiredAccess);
-        BOOL is_write = get_is_write(DesiredAccess);
-        BOOL is_directory = TRUE;
-
-
-        if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
+        UNICODE_STRING redirected_path = {0};        
+        if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, TRUE, get_is_read(DesiredAccess), get_is_write(DesiredAccess),0,0, &redirected_path)) {
 
             PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
             PVOID orig_root = ObjectAttributes->RootDirectory;
@@ -119,11 +158,8 @@ NTSTATUS __stdcall x_NtOpenDirectoryObject(PHANDLE DirectoryHandle, ACCESS_MASK 
 NTSTATUS __stdcall x_NtCreateDirectoryObject(PHANDLE DirectoryHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes) {
     if (ObjectAttributes && ObjectAttributes->ObjectName) {
         UNICODE_STRING redirected_path = {0};
-        BOOL is_read = get_is_read(DesiredAccess);
-        BOOL is_write = get_is_write(DesiredAccess);
-        BOOL is_directory = TRUE;
 
-        if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
+        if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, TRUE, get_is_read(DesiredAccess), get_is_write(DesiredAccess),0,0, &redirected_path)) {
 
             PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
             PVOID orig_root = ObjectAttributes->RootDirectory;
@@ -145,11 +181,9 @@ NTSTATUS __stdcall x_NtCreateDirectoryObject(PHANDLE DirectoryHandle, ACCESS_MAS
 NTSTATUS __stdcall x_NtCreateDirectoryObjectEx(PHANDLE DirectoryHandle, ACCESS_MASK DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, HANDLE ShadowDirectoryHandle, ULONG Flags) {
     if (ObjectAttributes && ObjectAttributes->ObjectName) {
         UNICODE_STRING redirected_path = {0};
-        BOOL is_read = get_is_read(DesiredAccess);
-        BOOL is_write = get_is_write(DesiredAccess);
-        BOOL is_directory = TRUE;
 
-        if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
+
+        if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, TRUE, get_is_read(DesiredAccess), get_is_write(DesiredAccess),0,0, &redirected_path)) {
 
             PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
             PVOID orig_root = ObjectAttributes->RootDirectory;
@@ -172,12 +206,8 @@ NTSTATUS __stdcall x_NtQueryAttributesFile(POBJECT_ATTRIBUTES ObjectAttributes, 
     if (ObjectAttributes) {
         if (ObjectAttributes->ObjectName) {
             UNICODE_STRING redirected_path = {0};
-            BOOL is_read = TRUE;
-            BOOL is_write = FALSE;
-            BOOL is_directory = FALSE;
 
-
-            if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
+            if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, FALSE,TRUE, FALSE,0,0, &redirected_path)) {
 
                 PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
                 PVOID orig_root = ObjectAttributes->RootDirectory;
@@ -202,11 +232,8 @@ NTSTATUS __stdcall x_NtQueryFullAttributesFile(POBJECT_ATTRIBUTES ObjectAttribut
     if (ObjectAttributes) {
         if (ObjectAttributes->ObjectName) {
             UNICODE_STRING redirected_path = {0};
-            BOOL is_read = TRUE;
-            BOOL is_write = FALSE;
-            BOOL is_directory = FALSE;
-
-            if (nt_resolve_path(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, is_directory, is_read, is_write,0, &redirected_path)) {
+            
+            if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, ObjectAttributes->ObjectName->Length, ObjectAttributes->RootDirectory, FALSE, TRUE, FALSE,0,0, &redirected_path)) {
 
                 PUNICODE_STRING orig_name = ObjectAttributes->ObjectName;
                 PVOID orig_root = ObjectAttributes->RootDirectory;
@@ -235,7 +262,7 @@ NTSTATUS __stdcall x_LdrLoadDll(PWCHAR PathToFile, ULONG *Flags, PUNICODE_STRING
         if (!wcsstr(tmod, L".")) {
             wcscat(tmod, L".dll");
         }
-        if (nt_resolve_path(tmod, (unsigned int)wcslen(tmod) * 2, NULL, FALSE, TRUE, FALSE,0, &redirected_path)) {
+        if (fs_redirect_nt(tmod, (unsigned int)wcslen(tmod) * 2, NULL, FALSE, TRUE, FALSE,0,0, &redirected_path)) {
             NTSTATUS status = ntdll_LdrLoadDll(PathToFile, Flags, &redirected_path, ModuleHandle);
             RtlFreeUnicodeString(&redirected_path);
             return status;
@@ -244,3 +271,59 @@ NTSTATUS __stdcall x_LdrLoadDll(PWCHAR PathToFile, ULONG *Flags, PUNICODE_STRING
 
     return  ntdll_LdrLoadDll(PathToFile, Flags, ModuleFileName, ModuleHandle);
 }
+
+#else
+// TODO - LINUX STUFF HERE
+#endif
+
+int init_library(void){   
+   
+    // Perform any Syscall Hooks we Need at This Level
+    #ifdef TARGET_OS_WINDOWS
+    if (!inline_hook("ntdll.dll", "NtCreateFile", SYSCALL_STUB_SIZE, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtOpenFile", SYSCALL_STUB_SIZE, (void*)x_NtOpenFile, (void**)&ntdll_NtOpenFile)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtOpenDirectoryObject", SYSCALL_STUB_SIZE, (void*)x_NtOpenDirectoryObject, (void**)&ntdll_NtOpenDirectoryObject)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtCreateDirectoryObject", SYSCALL_STUB_SIZE, (void*)x_NtCreateDirectoryObject, (void**)&ntdll_NtCreateDirectoryObject)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtCreateDirectoryObjectEx", SYSCALL_STUB_SIZE, (void*)x_NtCreateDirectoryObjectEx, (void**)&ntdll_NtCreateDirectoryObjectEx)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtQueryAttributesFile", SYSCALL_STUB_SIZE, (void*)x_NtQueryAttributesFile, (void**)&ntdll_NtQueryAttributesFile)) { return FALSE; }
+    if (!inline_hook("ntdll.dll", "NtQueryFullAttributesFile", SYSCALL_STUB_SIZE, (void*)x_NtQueryFullAttributesFile, (void**)&ntdll_NtQueryFullAttributesFile)) { return FALSE; }    
+
+    #ifdef TARGET_ARCH_64
+        if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x10, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) { return FALSE; }	
+    #else
+        if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0E, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
+    #endif
+    #else // TODO
+    /*
+        static int (*real_open)(const char *path, int oflag) = NULL;
+        static int (*real_access)(const char *pathname, int mode) = NULL;
+        static int (*real_ioctl)(int fd, unsigned long request, void* data) = NULL;
+        static ssize_t (*real_readlink)(const char *restrict path, char *restrict buf, size_t bufsize) = NULL;
+        static int (*real_mkdir)(const char *path, int mode) = NULL;
+        static FILE *(*real_fopen)(const char *filename, const char *mode) = NULL;
+        static void* (*real_opendir)(const char *name) = NULL;
+        static int (*real_openat)(int dirfd, const char *pathname, int flags) = NULL;
+        static int (*real__lxstat)(int ver, const char * path, void * stat_buf) = NULL;
+        static int (*real__xstat)(int ver, const char * path, void * stat_buf) = NULL;
+        static int (*real_rename)(const char *old, const char *new) = NULL;
+        static int (*real_remove)(const char *) = NULL;
+    */
+    #endif
+   return 1;
+}
+
+#ifdef TARGET_OS_WINDOWS
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    switch (ul_reason_for_call) {
+    case DLL_PROCESS_ATTACH:
+        return init_library();
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+    case DLL_PROCESS_DETACH:
+        break;
+    }
+    return TRUE;
+}
+#else
+void __attribute__((constructor)) initialize(void){init_library();}
+#endif

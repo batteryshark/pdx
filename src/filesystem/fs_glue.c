@@ -10,10 +10,13 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
     memcpy(src_clean_buffer,src_buffer,src_len);
     
     // Resolve an Absolute Path to our Inpath
+    wchar_t* w_abspath = calloc(1,X_MAX_PATH*2);
     char* abspath = calloc(1,X_MAX_PATH);
 
-    get_abspath_from_handle(root_handle, src_clean_buffer, abspath);
+    get_abspath_from_handle(root_handle, src_clean_buffer, w_abspath);
     free(src_clean_buffer); 
+    WideChartoChar(w_abspath,abspath);
+    free(w_abspath);
 
     // Send Path to our internal fs_redirect()
     char* redirected_path = NULL;

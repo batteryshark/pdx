@@ -34,42 +34,6 @@ typedef union _ANY_BUFFER {
 
 
 
-// Helpers
-BOOL get_is_read(DWORD DesiredAccess) {
-    if (DesiredAccess & 1) { return TRUE; }
-    if (DesiredAccess & 4) { return TRUE; }
-    if (DesiredAccess & 0x20) { return TRUE; }
-    if (DesiredAccess & 0x80) { return TRUE; }
-    if (DesiredAccess & READ_CONTROL) {return TRUE;}
-    if (DesiredAccess & GENERIC_READ) { return TRUE; }
-    if (DesiredAccess & GENERIC_EXECUTE) { return TRUE; }
-    return FALSE;
-}
-
-BOOL get_is_write(DWORD DesiredAccess) {
-    if (DesiredAccess & 2) { return TRUE; }
-    if (DesiredAccess & 4) { return TRUE; }
-    if (DesiredAccess & 0x40) { return TRUE; }
-    if (DesiredAccess & 0x100) { return TRUE; }
-    if (DesiredAccess & 0x00010000) { return TRUE; }
-    if (DesiredAccess & GENERIC_WRITE) { return TRUE; }
-    return FALSE;
-}
-
-BOOL get_is_directory(DWORD options){
-    return options & FILE_DIRECTORY_FILE;
-}
-
-BOOL get_fail_if_exists(DWORD flags){
-    if(flags & FILE_CREATE){return TRUE;}
-    return FALSE;
-}
-
-BOOL get_fail_if_not_exists(DWORD flags){
-    if(flags & FILE_OPEN){return TRUE;}
-    if(flags & FILE_OVERWRITE){return TRUE;}
-    return FALSE;
-}
 
 
 NTSTATUS wrapped_createdir(wchar_t* path){
