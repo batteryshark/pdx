@@ -21,7 +21,11 @@ Notes about piee_fs:
 - Will rebase every path to the root directory specified in evar PIEE_FS_ROOT
 - Will 'sanitize' any user paths from a home directory to a generic 'user' path for persistence compatibility.
 - Operates with various isolation modes defined by PIEE_FS_MODE:
+    
     -> Mode 1 (Default): Read operations are allowed to fallback outside of isolation if they don't exist within, but all writes are redirected.
+    
     -> Mode 2: Both read and write operations are allowed to fallback outside of isolation if they don't exist within.
+    
     -> Mode 3: All read operations will be redirected. This includes drivers and system components. Write operations will fallback outside of isolation if they don't exist within.
+    
     -> Mode 4: Full isolation - all reads and writes are redirected.
