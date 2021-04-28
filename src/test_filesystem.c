@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
  //   resolve_abspath(L"\\??\\D:\\vxsymlink.ini",out_path,1);
   //  wprintf(L"out path: %ls\n",out_path);
         
-    putenv("PIEE_FS_ROOT=c:\\tmp\\vx\\00000000");
+    putenv("PIEE_FS_ROOT=c:\\tmp\\vx\\30196360\\vxmap");
     char* redirected_path = NULL;
     int res = fs_redirect(argv[1],0, 1,1, 0, 0, &redirected_path);
     if(res){
@@ -27,3 +27,4 @@ int main(int argc, char *argv[]){
     //create_parent_path("\\??\\D:\\new\\paths\\are\\fun");
     return 0;
 }
+

@@ -3,7 +3,7 @@
 #define X_MAX_PATH 1024
 #define NT_PREFIX_W L"\\??\\"
 #define NT_PREFIX "\\??\\"
-#define FLAG_BYPASS 0xF0000000
+#define FLAG_BYPASS 0x04000000
 
 int path_exists_native(wchar_t* path);
 int path_exists(char* path);

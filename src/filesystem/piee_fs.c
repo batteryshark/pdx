@@ -3,6 +3,7 @@
 #include "fs_glue.h"
 #include "../common/mem.h"
 #ifdef TARGET_OS_WINDOWS
+
 #include <Windows.h>
 #include "../common/ntmin/ntmin.h"
 
@@ -91,6 +92,7 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
             return status;
         }
     }
+
     if(DesiredAccess & FLAG_BYPASS){
         DesiredAccess &= ~FLAG_BYPASS;
     }
@@ -277,7 +279,7 @@ NTSTATUS __stdcall x_LdrLoadDll(PWCHAR PathToFile, ULONG *Flags, PUNICODE_STRING
 #endif
 
 int init_library(void){   
-   
+
     // Perform any Syscall Hooks we Need at This Level
     #ifdef TARGET_OS_WINDOWS
     if (!inline_hook("ntdll.dll", "NtCreateFile", SYSCALL_STUB_SIZE, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
@@ -309,6 +311,7 @@ int init_library(void){
         static int (*real_remove)(const char *) = NULL;
     */
     #endif
+
    return 1;
 }
 

@@ -69,7 +69,8 @@
 				"${workspaceFolder}/src/filesystem/fs_utils_win.c",
 				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
 				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",						
+				"${workspaceFolder}/src/common/mem.c",		
+				"${workspaceFolder}/src/common/dbg.c",								
                 "${workspaceFolder}/src/test_filesystem.c",
                 "-static",      
                 "-static-libgcc",
@@ -151,6 +152,7 @@
                 "x86_64-w64-mingw32-gcc",
 				"-DTARGET_OS_WINDOWS",
                 "-DTARGET_ARCH_64",
+				"-DBYPASS_ENABLED",				
 				"-DFAT_NT",				
 				"-shared",
                 "-fshort-wchar",              
@@ -159,6 +161,7 @@
 				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
 				"${workspaceFolder}/src/common/strutils.c",				
 				"${workspaceFolder}/src/common/mem.c",
+				"${workspaceFolder}/src/common/dbg.c",				
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
@@ -180,6 +183,7 @@
                 "i686-w64-mingw32-gcc",
 				"-DTARGET_OS_WINDOWS",
                 "-DTARGET_ARCH_32",
+				"-DBYPASS_ENABLED",
 				"-DFAT_NT",				
 				"-shared",
                 "-fshort-wchar",              
@@ -188,10 +192,12 @@
 				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
 				"${workspaceFolder}/src/common/strutils.c",				
 				"${workspaceFolder}/src/common/mem.c",
+				"${workspaceFolder}/src/common/dbg.c",				
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/piee_fs32.dll"				
+                //"-o ${workspaceFolder}/plugins/piee_fs32.dll"				
+				"-o C:\\tmp\\vx\\30196360\\vxmnt\\nosteam\\piee_fs32.dll"								
             ],
             "presentation": {
                 "reveal": "always",

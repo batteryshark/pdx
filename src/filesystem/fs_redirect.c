@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "dbg.h"
 
 #ifdef TARGET_OS_WINDOWS
 #define OS_SEP '\\'
@@ -146,6 +146,7 @@ void init_fs_mode(){
 void init_fs(){
     init_fs_root();
     init_fs_home();
+    fs_init=1;
 }
 
 typedef struct _PIEE_PATH{
@@ -264,7 +265,8 @@ void generate_path_info(PPIEE_PATH sp){
         strcat(sp->redirected_path,working_path);        
         #endif
     }
-
+    sp->redirected_path_exists = path_exists(sp->redirected_path);
+    sp->redirected_path_is_symlink = path_is_symlink(sp->redirected_path);
     get_parent_path(sp->redirected_path,sp->redirected_parent);
     sp->redirected_parent_exists = path_exists(sp->redirected_parent);
 
@@ -282,28 +284,33 @@ void generate_path_info(PPIEE_PATH sp){
             resolve_abspath(sp->redirected_path,sp->resolved_original_path,1);
         }
     }
+    
     sp->create_parent_path = (sp->original_parent_exists && ! sp->redirected_parent_exists);
     sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
 }
-
-void print_sp_info(PPIEE_PATH sp){
-    printf("--------\n");
-    printf("Original Path: %s\n",sp->original_path);
-    printf("Original Path Exists: %d\n",sp->original_path_exists);
-    printf("Original Path is Symlink: %d\n",sp->original_path_is_symlink);
-    printf("Original Parent: %s\n",sp->original_parent);
-    printf("Original Parent Exists: %d\n",sp->original_parent_exists);
-    printf("Wildcard Path: %d\n",sp->is_wildcard_path);
-    printf("Is a Redirected Subpath: %d\n",sp->is_redirected_subpath);
-    printf("Redirected Path: %s\n",sp->redirected_path);
-    printf("Redirected Path Exists: %d\n",sp->redirected_path_exists);
-    printf("Redirected Path is Symlink: %d\n",sp->redirected_path_is_symlink);
-    printf("Redirected Parent: %s\n",sp->redirected_parent);
-    printf("Redirected Parent Exists: %d\n",sp->redirected_parent_exists);  
-    printf("Resolved Original Path: %s\n",sp->resolved_original_path);
-    printf("Resolved Original Path Exists: %d\n",sp->resolved_original_path_exists);
-    printf("Should Create Parent Path: %d\n",sp->create_parent_path);
-    printf("--------\n");
+static int info_lock = 0;
+void print_sp_info(PPIEE_PATH sp, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist){
+    while(info_lock){}
+    info_lock = 1;
+    DBG_printf("--------\n");
+    DBG_printf("Original Path: %s\n",sp->original_path);
+    DBG_printf("Read: %d Write: %d DIR: %d FIE: %d FINE: %d",is_read, is_write, is_directory, fail_if_exist, fail_if_not_exist);    
+    DBG_printf("Original Path Exists: %d\n",sp->original_path_exists);
+    DBG_printf("Original Path is Symlink: %d\n",sp->original_path_is_symlink);
+    DBG_printf("Original Parent: %s\n",sp->original_parent);
+    DBG_printf("Original Parent Exists: %d\n",sp->original_parent_exists);
+    DBG_printf("Wildcard Path: %d\n",sp->is_wildcard_path);
+    DBG_printf("Is a Redirected Subpath: %d\n",sp->is_redirected_subpath);
+    DBG_printf("Redirected Path: %s\n",sp->redirected_path);
+    DBG_printf("Redirected Path Exists: %d\n",sp->redirected_path_exists);
+    DBG_printf("Redirected Path is Symlink: %d\n",sp->redirected_path_is_symlink);
+    DBG_printf("Redirected Parent: %s\n",sp->redirected_parent);
+    DBG_printf("Redirected Parent Exists: %d\n",sp->redirected_parent_exists);  
+    DBG_printf("Resolved Original Path: %s\n",sp->resolved_original_path);
+    DBG_printf("Resolved Original Path Exists: %d\n",sp->resolved_original_path_exists);
+    DBG_printf("Should Create Parent Path: %d\n",sp->create_parent_path);
+    DBG_printf("--------\n");
+    info_lock = 0;
 }
 
 
@@ -311,8 +318,8 @@ void print_sp_info(PPIEE_PATH sp){
 int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist, char** redirected_path){
     if(!fs_init){
         init_fs();
-        printf("Redirected Root: %s\n",fs_root);
-        printf("Real Home: %s\n",fs_home);
+        DBG_printf("Redirected Root: %s\n",fs_root);
+        DBG_printf("Real Home: %s\n",fs_home);
     }
     // If we don't have a redirected root, we can't do anything.
     if(!fs_root){return 0;}
@@ -323,7 +330,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     strcpy(sp->original_path,in_abspath);
     generate_path_info(sp);
     *redirected_path = sp->redirected_path;
-    print_sp_info(sp);
+    print_sp_info(sp, is_directory, is_read, is_write, fail_if_exist, fail_if_not_exist);
     // 'Fix' for access case
     if(!is_read && !is_write){is_read = 1;}
 

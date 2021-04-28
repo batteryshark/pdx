@@ -116,7 +116,7 @@ void copy_file_native(wchar_t* src_path, wchar_t* dst_path){
     DWORD desired_access_src =  FILE_READ_ATTRIBUTES | GENERIC_READ | SYNCHRONIZE;
     HANDLE hSrc = 0;
     #ifdef BYPASS_ENABLED
-    desired_access |= FLAG_BYPASS;
+    desired_access_src |= FLAG_BYPASS;
     #endif    
 
     NTSTATUS status = NtCreateFile(&hSrc,desired_access_src,&pathOa,&IoSb, NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE, FILE_OPEN, FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0 );
@@ -143,7 +143,7 @@ void copy_file_native(wchar_t* src_path, wchar_t* dst_path){
     DWORD desired_access_dst = FILE_READ_ATTRIBUTES | GENERIC_WRITE | SYNCHRONIZE;
     HANDLE hDst = 0;
     #ifdef BYPASS_ENABLED
-    desired_access |= FLAG_BYPASS;
+    desired_access_dst |= FLAG_BYPASS;
     #endif    
     status = NtCreateFile(&hDst,desired_access_dst,&pathOa2,&IoSb3,NULL, FILE_ATTRIBUTE_NORMAL, FILE_SHARE_READ | FILE_SHARE_WRITE, FILE_OVERWRITE_IF, FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0 );
     if(status){
