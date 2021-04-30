@@ -4,13 +4,13 @@ This collection of loadable modules comprise a framework for isolating a process
 
 Aspects are divided as follows:
 
-- pdx_env: Handles username, home directory, os information, etc.
+- pdxenv: Handles username, home directory, os information, etc.
 
-- pdx_reg: Handles Windows registry isolation and redirection.
+- pdxreg: Handles Windows registry isolation and redirection.
 
-- pdx_fs: Handles Filesystem isolation and redirection.
+- pdxfs: Handles Filesystem isolation and redirection.
 
-- pdx_proc: Handles process spawning and legacy isolation.
+- pdxproc: Handles process spawning and legacy isolation.
 
 Ideally, these modules would be loaded in at process start either via loader, payload delivery (like a bootstrap shim), or dynamically linked.
 
