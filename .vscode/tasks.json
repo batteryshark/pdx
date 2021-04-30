@@ -105,7 +105,7 @@
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/piee_reg32.dll"				
+                "-o ${workspaceFolder}/plugins/pdxreg32.dll"				
             ],
             "presentation": {
                 "reveal": "always",
@@ -134,7 +134,7 @@
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/piee_reg64.dll"				
+                "-o ${workspaceFolder}/plugins/pdxreg64.dll"				
             ],
             "presentation": {
                 "reveal": "always",
@@ -165,7 +165,7 @@
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/piee_fs64.dll"				
+                "-o ${workspaceFolder}/plugins/pdxfs64.dll"				
             ],
             "presentation": {
                 "reveal": "always",
@@ -196,8 +196,8 @@
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                //"-o ${workspaceFolder}/plugins/piee_fs32.dll"				
-				"-o C:\\tmp\\vx\\30196360\\vxmnt\\nosteam\\piee_fs32.dll"								
+                "-o ${workspaceFolder}/plugins/pdxfs32.dll"				
+
             ],
             "presentation": {
                 "reveal": "always",
@@ -243,12 +243,12 @@
 				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",
-				"${workspaceFolder}/src/piee_env.c",
+				"${workspaceFolder}/src/pdxenv.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/piee_env64.dll"
+				"-o ${workspaceFolder}/plugins/pdxenv64.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -272,12 +272,12 @@
 				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",
-				"${workspaceFolder}/src/piee_proc.c",
+				"${workspaceFolder}/src/pdxproc.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/piee_proc64.dll"
+				"-o ${workspaceFolder}/plugins/pdxproc64.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -302,12 +302,12 @@
 				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/piee_env.c",
+				"${workspaceFolder}/src/pdxenv.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/piee_env32.dll"
+				"-o ${workspaceFolder}/plugins/pdxenv32.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -332,12 +332,12 @@
 				"${workspaceFolder}/src/common/ntmin/*.c",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/piee_proc.c",
+				"${workspaceFolder}/src/pdxproc.c",
 				"-static",
 				"-static-libgcc",
 				"-lgcc",
 				"-lntdll",
-				"-o ${workspaceFolder}/plugins/piee_proc32.dll"
+				"-o ${workspaceFolder}/plugins/pdxproc32.dll"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -359,11 +359,11 @@
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/piee_env.c",
+				"${workspaceFolder}/src/pdxenv.c",
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/piee_env64.so"
+				"-o ${workspaceFolder}/plugins/pdxenv64.so"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -385,11 +385,11 @@
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/piee_env.c",
+				"${workspaceFolder}/src/pdxenv.c",
 				"-static-libgcc",
 				"-lgcc",
 				"-ldl",
-				"-o ${workspaceFolder}/plugins/piee_env32.so"
+				"-o ${workspaceFolder}/plugins/pdxenv32.so"
 			],
 			"presentation": {
 				"reveal": "always",
@@ -410,8 +410,8 @@
 				"-I${workspaceFolder}/src/common",
 				"${workspaceFolder}/src/common/*.c",
 				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/piee_env.c",
-                "-o ${workspaceFolder}/plugins/piee_env64.dylib"
+				"${workspaceFolder}/src/pdxenv.c",
+                "-o ${workspaceFolder}/plugins/pdxenv64.dylib"
             ],
             "presentation": {
                 "reveal": "always",

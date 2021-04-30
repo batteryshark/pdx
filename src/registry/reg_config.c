@@ -66,11 +66,11 @@ void commit_changes(){
 }
 
 void get_config_file_path(){
-    if(getenv("PIEE_REG")){
-        strcpy(path_to_config_file,getenv("PIEE_REG"));
+    if(getenv("PDXREG")){
+        strcpy(path_to_config_file,getenv("PDXREG"));
     }else{
     // Fallback to CWD
-    strcpy(path_to_config_file,"piee_reg.ini");
+    strcpy(path_to_config_file,"pdxreg.ini");
     }
 }
 

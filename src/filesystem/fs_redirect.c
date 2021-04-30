@@ -72,8 +72,8 @@ void add_path_to_ignore_list(char* in_path){
 }
 
 void init_fs_ignore_list(){
-    if(!getenv("PIEE_FS_IGNORE")){return;}
-    const char* envbl = getenv("PIEE_FS_IGNORE");
+    if(!getenv("PDXFS_IGNORE")){return;}
+    const char* envbl = getenv("PDXFS_IGNORE");
     char* envbl_tmp = calloc(1,strlen(envbl)+1);
     strcpy(envbl_tmp,envbl);
 
@@ -91,7 +91,7 @@ void init_fs_ignore_list(){
 }
 
 void init_fs_root(){
-    const char* env_fs_root = getenv("PIEE_FS_ROOT");
+    const char* env_fs_root = getenv("PDXFS_ROOT");
     if(!env_fs_root){return;}
     #ifdef TARGET_OS_WINDOWS
     strcpy(fs_root,NT_PREFIX);
@@ -118,7 +118,7 @@ void init_fs_home(){
 }
 
 void init_fs_mode(){
-    const char* env_fs_mode = getenv("PIEE_FS_MODE");
+    const char* env_fs_mode = getenv("PDXFS_MODE");
     if(!env_fs_mode){return;}
     int fs_mode = atoi(env_fs_mode);
     switch(fs_mode){
@@ -149,7 +149,7 @@ void init_fs(){
     fs_init=1;
 }
 
-typedef struct _PIEE_PATH{
+typedef struct _PDXPATH{
     char* redirected_path;
     char original_path[1024];
     char original_parent[1024];
@@ -165,7 +165,7 @@ typedef struct _PIEE_PATH{
     int is_redirected_subpath;
     int is_wildcard_path;
     int create_parent_path;
-}PIEE_PATH,*PPIEE_PATH;
+}PDXPATH,*PPDXPATH;
 
 void get_parent_path(char* in_path, char* out_parent){
     int i;
@@ -212,7 +212,7 @@ void create_parent_path(char* parent_path){
     }
 }
 
-void generate_path_info(PPIEE_PATH sp){
+void generate_path_info(PPDXPATH sp){
     #ifdef TARGET_OS_WINDOWS
     to_lowercase(sp->original_path);
     #endif
@@ -289,7 +289,7 @@ void generate_path_info(PPIEE_PATH sp){
     sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
 }
 static int info_lock = 0;
-void print_sp_info(PPIEE_PATH sp, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist){
+void print_sp_info(PPDXPATH sp, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist){
     while(info_lock){}
     info_lock = 1;
     DBG_printf("--------\n");
@@ -326,7 +326,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     // Check ignore list and return at this point.    
     if(path_ignored(in_abspath)){return 0;}    
 
-    PPIEE_PATH sp = calloc(1,sizeof(PIEE_PATH));
+    PDXPATH sp = calloc(1,sizeof(PDXPATH));
     strcpy(sp->original_path,in_abspath);
     generate_path_info(sp);
     *redirected_path = sp->redirected_path;

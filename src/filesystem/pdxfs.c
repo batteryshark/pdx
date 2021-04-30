@@ -1,4 +1,4 @@
-// Filesystem Redirection for PIEE
+// Filesystem Redirection Library
 #include "fs_utils_win.h"
 #include "fs_glue.h"
 #include "../common/mem.h"

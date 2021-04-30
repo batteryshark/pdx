@@ -30,10 +30,10 @@ void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
     // Determine if this is a 32 or 64bit target
     char loader_exe_path[1024] = {0x00};
     char bootstrap_path[1024] = {0x00};
-    if(getenv("PIEE_LOADERS_PATH")){
-        strcpy(loader_exe_path,getenv("PIEE_LOADERS_PATH"));
+    if(getenv("PDX_LOADERS_PATH")){
+        strcpy(loader_exe_path,getenv("PDX_LOADERS_PATH"));
         strcat(loader_exe_path,"\\");
-        strcpy(bootstrap_path,getenv("PIEE_LOADERS_PATH"));
+        strcpy(bootstrap_path,getenv("PDX_LOADERS_PATH"));
         strcat(bootstrap_path,"\\");
     }
 
