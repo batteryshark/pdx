@@ -1,4 +1,4 @@
-# Paradox - a Process Isolation and Environment Emulation Layer
+# Paradox - A Process Isolation / Environment Emulation Layer
 
 This collection of loadable modules comprise a framework for isolating a process and/or emulating another operating environment.
 
