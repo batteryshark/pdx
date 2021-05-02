@@ -1,203 +1,35 @@
 {
-	"version": "2.0.0",
-	"tasks": [
+    "version": "2.0.0",
+    "tasks": [
+        // -- [COMMON TASKS] -- 
         {
-            // VX LOADER [Windows]
-            "label": "[Loader] DropKick [Windows 64-bit]",
+            "label": "Create Binary Path",
             "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-                "-DTARGET_ARCH_64",
-                "-fshort-wchar",              
-                "${workspaceFolder}/src/dropkick.c",
-                "-static",      
-                "-static-libgcc",                  
-                "-o ${workspaceFolder}/loaders/dropkick64.exe"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
+            "osx": {
+                "command": "mkdir -p ./bin"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },     
-        {
-            // VX LOADER [Windows]
-            "label": "[Test] Registry [Windows 64-bit]",
-            "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_64",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/registry/*.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",						
-				"${workspaceFolder}/src/common/iniparser/*.c",
-                "${workspaceFolder}/src/test_registry.c",
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/test_registry.exe"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
+            "linux": {
+                "command": "mkdir -p ./bin"
             },
-            "group": {
-                "kind": "build",
-                "isDefault": true
+            "windows": {
+                "command": "cmd",
+                "args": [
+                    "/C",
+                    "if not exist .\\bin mkdir .\\bin"
+                ]
             }
-        },  	
-        {
-            // VX LOADER [Windows]
-            "label": "[Test] Filesystem [Windows 64-bit]",
-            "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_64",
-				"-DFAT_NT",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/filesystem/fs_glue.c",
-				"${workspaceFolder}/src/filesystem/fs_redirect.c",
-				"${workspaceFolder}/src/filesystem/fs_utils_win.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",		
-				"${workspaceFolder}/src/common/dbg.c",								
-                "${workspaceFolder}/src/test_filesystem.c",
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/test_filesystem.exe"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },  			
-        {
-            "label": "[Plugin] Registry [Windows 32-bit]",
-            "type": "shell",
-            "command": [
-                "i686-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_32",
-				"-m32",
-				"-shared",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/registry/*.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",						
-				"${workspaceFolder}/src/common/iniparser/*.c",
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/pdxreg32.dll"				
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },  			   
-        {
-            "label": "[Plugin] Registry [Windows 64-bit]",
-            "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_64",
-				"-shared",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/registry/*.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",						
-				"${workspaceFolder}/src/common/iniparser/*.c",
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/pdxreg64.dll"				
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },  		
-        {
-            "label": "[Plugin] Filesystem [Windows 64-bit]",
-            "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_64",
-				"-DBYPASS_ENABLED",				
-				"-DFAT_NT",				
-				"-shared",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/filesystem/*.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",
-				"${workspaceFolder}/src/common/dbg.c",				
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/pdxfs64.dll"				
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        }, 			
-        {
-            "label": "[Plugin] Filesystem [Windows 32-bit]",
-            "type": "shell",
-            "command": [
-                "i686-w64-mingw32-gcc",
-				"-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_32",
-				"-DBYPASS_ENABLED",
-				"-DFAT_NT",				
-				"-shared",
-                "-fshort-wchar",              
-				"-I${workspaceFolder}/src/common",				
-				"${workspaceFolder}/src/filesystem/*.c",
-				"${workspaceFolder}/src/common/ntmin/ntmin.c",								
-				"${workspaceFolder}/src/common/strutils.c",				
-				"${workspaceFolder}/src/common/mem.c",
-				"${workspaceFolder}/src/common/dbg.c",				
-                "-static",      
-                "-static-libgcc",
-				"-lntdll",                  
-                "-o ${workspaceFolder}/plugins/pdxfs32.dll"				
+        },
 
+        //  -- [WINDOWS TASKS] --
+        {
+            "label": "Build Binaries [Windows 64-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Library [Windows 64-bit]",
+                "DropKick Loader [Windows 64-bit]",
+                "PDXReg Library [Windows 64-bit]",
+                "PDXEnv Library [Windows 64-bit]",
+                "PDXFS Library [Windows 64-bit]"
             ],
             "presentation": {
                 "reveal": "always",
@@ -207,19 +39,246 @@
                 "kind": "build",
                 "isDefault": true
             }
-        }, 			   		
+        },
         {
-            "label": "[Loader] DropKick [Windows 32-bit]",
+            "label": "Build Binaries [Windows 32-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Library [Windows 32-bit]",
+                "DropKick Loader [Windows 32-bit]",
+                "PDXReg Library [Windows 32-bit]",
+                "PDXEnv Library [Windows 32-bit]",
+                "PDXFS Library [Windows 32-bit]"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "PDXProc Library [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+                "-shared",
+                "-fshort-wchar",
+                "'-Wl,--subsystem,native'",
+                "-nostartfiles",
+                "-nostdlib",
+                "'-Wl,-eDllMain'",
+                "${workspaceFolder}/src/windows/common/ntmin/*.c",
+                "${workspaceFolder}/src/windows/common/*.c",
+                "${workspaceFolder}/src/windows/process/pdxproc.c",
+                "-static",
+                "-static-libgcc",
+                "-lntdll",
+                "-lgcc",
+                "-o ${workspaceFolder}/bin/pdxproc64.dll"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Library [Windows 32-bit]",
             "type": "shell",
             "command": [
                 "i686-w64-mingw32-gcc",
-                "-m32",
-                "-DTARGET_ARCH_32",
-                "-fshort-wchar",              
-                "${workspaceFolder}/src/dropkick.c",
+                "-shared",
+                "-fshort-wchar",
+                "'-Wl,--subsystem,native'",
+                "-nostartfiles",
+                "-nostdlib",
+                "'-Wl,-e_DllMain@12'",
+                "${workspaceFolder}/src/windows/common/ntmin/*.c",
+                "${workspaceFolder}/src/windows/common/*.c",
+                "${workspaceFolder}/src/windows/process/pdxproc.c",
+                "-static",
+                "-static-libgcc",
+                "-lntdll",
+                "-lgcc",
+                "-o ${workspaceFolder}/bin/pdxproc32.dll"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "DropKick Loader [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+                "-fshort-wchar",
+                "${workspaceFolder}/src/windows/process/dropkick.c",
+                "-static",
+                "-static-libgcc",
+                "-o ${workspaceFolder}/bin/dropkick64.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "DropKick Loader [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+                "-fshort-wchar",
+                "${workspaceFolder}/src/windows/process/dropkick.c",
+                "-static",
+                "-static-libgcc",
+                "-o ${workspaceFolder}/bin/dropkick32.exe"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },			   
+        {
+            "label": "PDXReg Library [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/shared/strutils.c",		                
+				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/common/ntmin/ntmin.c",		
+                "${workspaceFolder}/src/windows/registry/*.c",
                 "-static",      
-                "-static-libgcc",                  
-                "-o ${workspaceFolder}/loaders/dropkick32.exe"
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxreg64.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXReg Library [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",
+				"${workspaceFolder}/src/shared/strutils.c",		                                			
+				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/common/ntmin/ntmin.c",		
+                "${workspaceFolder}/src/windows/registry/*.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxreg32.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXEnv Library [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/environment/*.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxenv64.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXEnv Library [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/environment/*.c",
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxenv32.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },    
+        {
+            "label": "PDXFS Library [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/windows/common/ntmin/*.c",				                
+				"${workspaceFolder}/src/shared/*.c",
+                "${workspaceFolder}/src/windows/filesystem/fs_utils.c",
+                "${workspaceFolder}/src/windows/filesystem/pdxfs.c",                
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxfs64.dll"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXFS Library [Windows 32-bit]",
+            "type": "shell",
+            "command": [
+                "i686-w64-mingw32-gcc",
+				"-shared",
+                "-fshort-wchar",              			
+				"${workspaceFolder}/src/windows/common/*.c",
+				"${workspaceFolder}/src/windows/common/ntmin/*.c",
+				"${workspaceFolder}/src/shared/*.c",
+                "${workspaceFolder}/src/windows/filesystem/fs_utils.c",
+                "${workspaceFolder}/src/windows/filesystem/pdxfs.c",                
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/pdxfs32.dll"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },               
+
+
+        //  -- [LINUX TASKS] --
+        {
+            "label": "Build Binaries [Linux 64-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Library [Linux 64-bit]",
+                "PDXEnv Library [Linux 64-bit]",
+                "PDXFS Library [Linux 64-bit]"
             ],
             "presentation": {
                 "reveal": "always",
@@ -229,263 +288,288 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },		
-		{
-			"label": "[Plugin] Environment [Windows 64-bit]",
-			"type": "shell",
-			"command": [
-				"x86_64-w64-mingw32-gcc",
-				"-shared",
-				"-DTARGET_OS_WINDOWS",
-				"-DTARGET_ARCH_64",
-				"-fshort-wchar",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/ntmin/*.c",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",
-				"${workspaceFolder}/src/pdxenv.c",
-				"-static",
-				"-static-libgcc",
-				"-lgcc",
-				"-lntdll",
-				"-o ${workspaceFolder}/plugins/pdxenv64.dll"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
-		{
-			"label": "[Plugin] Process [Windows 64-bit]",
-			"type": "shell",
-			"command": [
-				"x86_64-w64-mingw32-gcc",
-				"-shared",
-				"-DTARGET_OS_WINDOWS",
-				"-DTARGET_ARCH_64",
-				"-fshort-wchar",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/ntmin/*.c",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",
-				"${workspaceFolder}/src/pdxproc.c",
-				"-static",
-				"-static-libgcc",
-				"-lgcc",
-				"-lntdll",
-				"-o ${workspaceFolder}/plugins/pdxproc64.dll"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},		
-		{
-			"label": "[Plugin] Environment [Windows 32-bit]",
-			"type": "shell",
-			"command": [
-				"i686-w64-mingw32-gcc",
-				"-m32",
-				"-shared",
-				"-DTARGET_OS_WINDOWS",
-				"-DTARGET_ARCH_32",
-				"-fshort-wchar",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/ntmin/*.c",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/pdxenv.c",
-				"-static",
-				"-static-libgcc",
-				"-lgcc",
-				"-lntdll",
-				"-o ${workspaceFolder}/plugins/pdxenv32.dll"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
-		{
-			"label": "[Plugin] Process [Windows 32-bit]",
-			"type": "shell",
-			"command": [
-				"i686-w64-mingw32-gcc",
-				"-m32",
-				"-shared",
-				"-DTARGET_OS_WINDOWS",
-				"-DTARGET_ARCH_32",
-				"-fshort-wchar",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/ntmin/*.c",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/pdxproc.c",
-				"-static",
-				"-static-libgcc",
-				"-lgcc",
-				"-lntdll",
-				"-o ${workspaceFolder}/plugins/pdxproc32.dll"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},		
-		{
-			"label": "[Plugin] Environment [Linux 64-bit]",
-			"type": "shell",
-			"command": [
-				"/usr/bin/gcc",
-				"-shared",
-				"-DTARGET_ARCH_64",
-				"-fPIC",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/pdxenv.c",
-				"-static-libgcc",
-				"-lgcc",
-				"-ldl",
-				"-o ${workspaceFolder}/plugins/pdxenv64.so"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
-		{
-			"label": "[Plugin] Environment [Linux 32-bit]",
-			"type": "shell",
-			"command": [
-				"/usr/bin/gcc",
-				"-shared",
-				"-m32",
-				"-DTARGET_ARCH_32",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/pdxenv.c",
-				"-static-libgcc",
-				"-lgcc",
-				"-ldl",
-				"-o ${workspaceFolder}/plugins/pdxenv32.so"
-			],
-			"presentation": {
-				"reveal": "always",
-				"panel": "shared"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		},
+        },
         {
-            "label": "[Plugin] Environment [MacOSX 64-bit]",
+            "label": "Build Binaries [Linux 32-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Library [Linux 32-bit]",
+                "PDXEnv Library [Linux 32-bit]",
+                "PDXFS Library [Linux 32-bit]"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Tests [Linux 64-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Test Parent [Linux 64-bit]",
+                "PDXProc Test Child [Linux 64-bit]",
+                "PDXProc Test Library [Linux 64-bit]"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Build Tests [Linux 32-bit]",
+            "dependsOn": [
+                "Create Binary Path",
+                "PDXProc Test Parent [Linux 32-bit]",
+                "PDXProc Test Child [Linux 32-bit]",
+                "PDXProc Test Library [Linux 32-bit]"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "PDXProc Library [Linux 64-bit]",
             "type": "shell",
             "command": [
                 "/usr/bin/gcc",
                 "-shared",
-                "-DTARGET_ARCH_64",
-				"-I${workspaceFolder}/src/common",
-				"${workspaceFolder}/src/common/*.c",
-				"${workspaceFolder}/src/common/iniparser/*.c",				
-				"${workspaceFolder}/src/pdxenv.c",
-                "-o ${workspaceFolder}/plugins/pdxenv64.dylib"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "[Loader] Bootstrap [Windows 64-bit]",
-            "type": "shell",
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-                "-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_64",
-                "-shared",
-                "-fshort-wchar",           
-                "'-Wl,--subsystem,native'",                                
-                "-nostartfiles", 
-                "-nostdlib",
-                "'-Wl,-eDllMain'",          
-                "-I${workspaceFolder}/src",
-                "${workspaceFolder}/src/common/ntmin/*.c",
-                "${workspaceFolder}/src/common/*.c",
-                "${workspaceFolder}/src/bootstrap.c",
-                "-static", 
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/shared/dbg.c",
+                "${workspaceFolder}/src/linux/process/pdxproc.c",
                 "-static-libgcc",
-                "-lntdll",
                 "-lgcc",
-                "-o ${workspaceFolder}/loaders/bootstrap64.dll"
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc64.so"
             ],
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
             }
         },
         {
-            "label": "[Loader] Bootstrap [Windows 32-bit]",
+            "label": "PDXProc Library [Linux 32-bit]",
             "type": "shell",
             "command": [
-                "i686-w64-mingw32-gcc",
-                "-DTARGET_OS_WINDOWS",
-                "-DTARGET_ARCH_32",
+                "/usr/bin/gcc",
                 "-m32",
                 "-shared",
-                "-fshort-wchar",           
-                "'-Wl,--subsystem,native'",                                
-                "-nostartfiles", 
-                "-nostdlib",
-                "'-Wl,-e_DllMain@12'",          
-                "-I${workspaceFolder}/src",
-                "${workspaceFolder}/src/common/ntmin/*.c",
-                "${workspaceFolder}/src/common/*.c",
-                "${workspaceFolder}/src/bootstrap.c",
-                "-static", 
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/shared/dbg.c",
+                "${workspaceFolder}/src/linux/process/pdxproc.c",
                 "-static-libgcc",
-                "-lntdll",
                 "-lgcc",
-                "-o ${workspaceFolder}/loaders/bootstrap32.dll"
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc32.so"
             ],
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
             }
-        }			
-	]
+        },
+        {
+            "label": "PDXEnv Library [Linux 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-shared",
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/linux/common/iniparser/*.c",                
+                "${workspaceFolder}/src/linux/environment/pdxenv.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxenv64.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXEnv Library [Linux 32-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-m32",
+                "-shared",
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/linux/common/iniparser/*.c",                                
+                "${workspaceFolder}/src/linux/environment/pdxenv.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxenv32.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },   
+        {
+            "label": "PDXFS Library [Linux 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-shared",
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/shared/*.c",
+                "${workspaceFolder}/src/linux/filesystem/*.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxfs64.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXFS Library [Linux 32-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-shared",
+                "-fPIC",
+                "${workspaceFolder}/src/linux/common/*.c",
+                "${workspaceFolder}/src/shared/*.c",
+                "${workspaceFolder}/src/linux/filesystem/*.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxfs32.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },            
+        // Linux Tests
+        {
+            "label": "PDXProc Test Parent [Linux 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "${workspaceFolder}/src/linux/process/test_parent.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc_test_parent64.elf"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Test Parent [Linux 32-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-m32",
+                "${workspaceFolder}/src/linux/process/test_parent.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc_test_parent32.elf"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Test Child [Linux 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "${workspaceFolder}/src/linux/process/test_child.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc_test_child64.elf"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Test Child [Linux 32-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-m32",
+                "${workspaceFolder}/src/linux/process/test_child.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/pdxproc_test_child32.elf"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Test Library [Linux 64-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-shared",
+                "${workspaceFolder}/src/linux/process/example_lib.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/test_lib64.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "PDXProc Test Library [Linux 32-bit]",
+            "type": "shell",
+            "command": [
+                "/usr/bin/gcc",
+                "-m32",
+                "-shared",
+                "${workspaceFolder}/src/linux/process/example_lib.c",
+                "-static-libgcc",
+                "-lgcc",
+                "-ldl",
+                "-o ${workspaceFolder}/bin/test_lib32.so"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+        
+
+
+
+
+        //  -- [Mac OSX TASKS] --
+        // TODO!
+    ]
 }

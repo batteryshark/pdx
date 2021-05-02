@@ -1,8 +1,12 @@
 {
     "files.associations": {
-        "iniparser.h": "c",
-        "string.h": "c",
+        "stdlib.h": "c",
+        "ntmin.h": "c",
         "ntdll.h": "c",
-        "fs_redirect.h": "c"
+        "printf.h": "c",
+        "stdio.h": "c",
+        "string.h": "c",
+        "fs_redirect.h": "c",
+        "mem.h": "c"
     }
 }
