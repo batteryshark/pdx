@@ -77,6 +77,7 @@ void cleanup_registry(){
 }
 
 int key_path_exists(char* key_path){
+    init_registry();
     preprocess_path(key_path);
     int num_sections = iniparser_getnsec(registry);
     for(int i=0;i<num_sections;i++){
@@ -89,6 +90,7 @@ int key_path_exists(char* key_path){
 }
 
 void create_registry_entry(char* key_path, char* value_name, unsigned int title_index, unsigned int type, void* data, unsigned int data_length){
+    init_registry();
     char full_path[1024] = {0x00};
     char data_buffer[1024] = {0x00};
     if(!strlen(value_name)){
@@ -131,6 +133,7 @@ void create_registry_entry(char* key_path, char* value_name, unsigned int title_
 }
 
 int get_registry_value(char* key_path, char* value_name,unsigned int* value_type, unsigned char** value_data, unsigned int* value_data_length){
+    init_registry();
     char full_path[1024] = {0x00};
     
     unsigned int type = 0; 
@@ -191,6 +194,7 @@ int get_registry_value(char* key_path, char* value_name,unsigned int* value_type
 }
 
 void delete_registry_key(char* key_path, char* value_name){
+    init_registry();
     char full_path[1024] = {0x00};
     strcpy(full_path,key_path);
     // We may be deleting a key or value.

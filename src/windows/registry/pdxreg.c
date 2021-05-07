@@ -155,7 +155,7 @@ __declspec(dllexport) void imoldreg(){};
 
 int init_library(void){   
 
-    if(!init_registry()){return 0;}
+
     // Perform any Syscall Hooks we Need at This Level
     if (!inline_hook("ntdll.dll", "NtClose", SYSCALL_STUB_SIZE, (void*)x_NtClose, (void**)&ntdll_NtClose)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtCreateKey", SYSCALL_STUB_SIZE, (void*)x_NtCreateKey, (void**)&ntdll_NtCreateKey)) { return FALSE; }
