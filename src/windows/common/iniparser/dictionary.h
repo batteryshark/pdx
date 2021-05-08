@@ -21,9 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef TARGET_OS_LINUX
-#include <unistd.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
