@@ -4,6 +4,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+//#define DEBUG_BUILD
+
 #if _WIN32
 #include <windows.h>
 void DBG_printf(const char* fmt, ...) {
@@ -14,7 +16,7 @@ void DBG_printf(const char* fmt, ...) {
     vsnprintf(s, sizeof(s) - 1, fmt, args);
     va_end(args);
     s[sizeof(s) - 1] = 0x00;
-    OutputDebugStringA(x)
+    OutputDebugStringA(s);
 #endif
 }
 
