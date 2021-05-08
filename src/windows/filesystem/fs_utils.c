@@ -4,7 +4,7 @@
 #include "../../shared/strutils.h"
 #include "fs_utils.h"
 
-
+#define BYPASS_ENABLED
 
 
 typedef struct _MOUNTMGR_TARGET_NAME {
