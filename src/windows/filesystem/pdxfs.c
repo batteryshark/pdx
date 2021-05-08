@@ -53,13 +53,13 @@ BOOL get_is_directory(DWORD options){
 }
 
 BOOL get_fail_if_exists(DWORD flags){
-    if(flags & FILE_CREATE){return TRUE;}
+    if(flags == FILE_CREATE){return TRUE;}
     return FALSE;
 }
 
 BOOL get_fail_if_not_exists(DWORD flags){
-    if(flags & FILE_OPEN){return TRUE;}
-    if(flags & FILE_OVERWRITE){return TRUE;}
+    if(flags == FILE_OPEN){return TRUE;}
+    if(flags == FILE_OVERWRITE){return TRUE;}
     return FALSE;
 }
 
@@ -68,10 +68,10 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
     // Make a copy of our instr to ensure it is properly truncated with nulls.
     wchar_t* src_clean_buffer = (wchar_t*)calloc(1,src_len+2);
     memcpy(src_clean_buffer,src_buffer,src_len);
-    #ifdef TARGET_OS_WINDOWS
+
     // If a target doesn't have a DOS drive for now, we'll bypass.
     if(!wcsstr(src_clean_buffer,L":")){ free(src_clean_buffer); return 0;}
-    #endif
+
 
     // Resolve an Absolute Path to our Inpath
     wchar_t* w_abspath = calloc(1,X_MAX_PATH*2);
@@ -83,7 +83,6 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
 
     // Send Path to our internal fs_redirect()
     char* redirected_path = NULL;
-
     int result = fs_redirect(abspath, is_directory, is_read, is_write, fail_if_exist, fail_if_not_exist, &redirected_path);
     free(abspath);
     if(!result){DBG_printf("Result: Bypass");return 0;}
@@ -103,6 +102,7 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
     if (!(DesiredAccess & FLAG_BYPASS) && ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
 
         UNICODE_STRING redirected_path = {0};
+
         if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, 
                 ObjectAttributes->ObjectName->Length, 
                 ObjectAttributes->RootDirectory, 
