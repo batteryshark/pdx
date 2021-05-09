@@ -21,6 +21,9 @@ typedef struct _THREAD_BASIC_INFORMATION {
 	KPRIORITY               BasePriority;
 } THREAD_BASIC_INFORMATION, * PTHREAD_BASIC_INFORMATION;
 
+// I hate this
+// TODO: Replace CreateProcessA with NtCreateUserProcess to call our dropkick and bypass
+static int bypass_flag = 0;
 
 void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
     if(!k32_CreateProcessA){
@@ -52,12 +55,16 @@ void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
 	STARTUPINFOA Startup;
 	memset(&Startup,0x00, sizeof(Startup));
 	memset(&pi,0x00, sizeof(pi));
-
-    k32_CreateProcessA(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &Startup, &pi);
+    bypass_flag = 1;
+    k32_CreateProcessA(NULL, cmd, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &Startup, &pi);
+    bypass_flag = 0;
 }
 
 
 NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHandle, ACCESS_MASK ProcessDesiredAccess, ACCESS_MASK ThreadDesiredAccess, POBJECT_ATTRIBUTES ProcessObjectAttributes, POBJECT_ATTRIBUTES ThreadObjectAttributes, ULONG ProcessFlags, ULONG ThreadFlags, PRTL_USER_PROCESS_PARAMETERS ProcessParameters, PVOID CreateInfo, PVOID AttributeList) {
+    if(bypass_flag){
+        return ntdll_NtCreateUserProcess(ProcessHandle, ThreadHandle, ProcessDesiredAccess, ThreadDesiredAccess, ProcessObjectAttributes, ThreadObjectAttributes, ProcessFlags, ThreadFlags, ProcessParameters, CreateInfo, AttributeList);    
+    }
     ULONG original_process_flags = ProcessFlags;
     ProcessFlags |= CREATE_SUSPENDED;
     NTSTATUS status = ntdll_NtCreateUserProcess(ProcessHandle, ThreadHandle, ProcessDesiredAccess, ThreadDesiredAccess, ProcessObjectAttributes, ThreadObjectAttributes, ProcessFlags, ThreadFlags, ProcessParameters, CreateInfo, AttributeList);    
@@ -75,7 +82,8 @@ NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHa
     }
     USHORT ProcessMachine = 0;
     USHORT NativeMachine = 0;
-    int is_wow64 = (RtlWow64GetProcessMachines(*ProcessHandle, &ProcessMachine, &NativeMachine) >= 0);
+    RtlWow64GetProcessMachines(*ProcessHandle, &ProcessMachine, &NativeMachine);
+    int is_wow64 = (ProcessMachine != 0);
     spawn_process(is_wow64, tbi.ClientId.UniqueProcess, tbi.ClientId.UniqueThread, leave_suspended);    
     return status;
 }
