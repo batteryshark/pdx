@@ -238,8 +238,7 @@ BOOL get_mpm_handle(PHANDLE hp) {
 
 BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoint) {
     HANDLE hmpm = INVALID_HANDLE_VALUE;
-    get_mpm_handle(&hmpm);
-    if (!hmpm || hmpm == INVALID_HANDLE_VALUE) {
+    if (!get_mpm_handle(&hmpm) || !hmpm || hmpm == INVALID_HANDLE_VALUE) {
         return FALSE;
     }
     // Step 5: DeviceIOControl to query dos volume, get the drive letter string.
@@ -262,7 +261,7 @@ BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoin
 int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path){
     // Bypass if there isn't a valid handle.
     if (!hObject || hObject == INVALID_HANDLE_VALUE) {
-        wcscpy(out_path,in_path);
+        if(in_path){wcscpy(out_path,in_path);}
         return FALSE;
     }
 
@@ -278,7 +277,7 @@ int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path)
     unsigned int tail_offset = 0;
     if (!get_device_root_string(ObjectInfo->Name.Buffer, device_root_name, &tail_offset)) {
         free(ObjectInfo);
-        wcscpy(out_path,in_path);
+        if(in_path){wcscpy(out_path,in_path);}
         return FALSE;
     }
 
@@ -286,13 +285,13 @@ int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path)
     wchar_t* working_path = (wchar_t*)calloc(1, X_MAX_PATH);
     if (!working_path) { 
         free(ObjectInfo);        
-        wcscpy(out_path,in_path); 
+        if(in_path){wcscpy(out_path,in_path);}
         return FALSE; 
     }
     wcscat(working_path, L"\\??\\");
     if (!get_dos_mountpoint_from_device(device_root_name, working_path)) {
         free(ObjectInfo);
-        wcscpy(out_path,in_path); 
+        if(in_path){wcscpy(out_path,in_path);}
         return FALSE;
     }
 
@@ -307,7 +306,7 @@ int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path)
     free(ObjectInfo);
     wcscpy(out_path,working_path); 
     free(working_path);
-    
+
     return TRUE;
 }
 

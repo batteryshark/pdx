@@ -84,8 +84,9 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
     // Send Path to our internal fs_redirect()
     char* redirected_path = NULL;
     int result = fs_redirect(abspath, is_directory, is_read, is_write, fail_if_exist, fail_if_not_exist, &redirected_path);
+    
+    if(!result){DBG_printf("Result: Bypass %s",abspath); free(abspath); return 0;}
     free(abspath);
-    if(!result){DBG_printf("Result: Bypass");return 0;}
     // Handle bypass responses
     if(redirected_path){
     ChartoUnicodeString(redirected_path,unicodestr_redirected_path);
@@ -103,6 +104,7 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
 
         UNICODE_STRING redirected_path = {0};
 
+                
         if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, 
                 ObjectAttributes->ObjectName->Length, 
                 ObjectAttributes->RootDirectory, 

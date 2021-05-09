@@ -246,7 +246,7 @@ void generate_path_info(PPDXPATH sp){
     #if defined _WIN32
     to_lowercase(sp->original_path);
     #endif
-    fix_separators(sp->original_path);    
+    fix_separators(sp->original_path);   
     char working_path[1024];
     sp->is_home_subpath = 0;
     sp->original_path_exists = path_exists(sp->original_path);
@@ -308,14 +308,16 @@ void generate_path_info(PPDXPATH sp){
         sp->redirected_path_exists = sp->redirected_parent_exists;
     }else{
         sp->original_path_is_symlink = path_is_symlink(sp->original_path);
-        if(sp->original_path_exists){
+        if(sp->original_path_exists && sp->original_path_is_symlink){
             resolve_abspath(sp->original_path,sp->resolved_original_path,1);
+        }else{
+            strcpy(sp->resolved_original_path,sp->original_path);
         }
         if(sp->redirected_path_is_symlink){
             resolve_abspath(sp->redirected_path,sp->resolved_original_path,1);
         }
     }
-    
+
     sp->create_parent_path = (sp->original_parent_exists && ! sp->redirected_parent_exists);
     sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
 }
@@ -421,7 +423,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
         }
         if(strcmp(sp->resolved_original_path,sp->redirected_path)){
             // Copy Original File
-            //printf("Copy File: %s => %s\n",sp->resolved_original_path,sp->redirected_path);
+            //DBG_printf("Copy File: %s => %s\n",sp->resolved_original_path,sp->redirected_path);
             copy_file(sp->resolved_original_path,sp->redirected_path);
         }
     }
