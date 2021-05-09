@@ -29,14 +29,47 @@ typedef struct _IGNORE_ENTRY{
 
 static PFS_IGNORE_ENTRY first_ignore_entry = {0x00};
 
+// Replaces duplicate separators
+void fix_separators(char* in_path){
+    // Fix POSIX Path Fuckups
+    #if defined _WIN32
+    for(int i=0;i<strlen(in_path);i++){
+        if(in_path[i] == '/'){
+            in_path[i] = OS_SEP;
+        }
+    }
+    #endif
+    for(int i=0;i<strlen(in_path)-1;i++){
+        if(in_path[i] == OS_SEP && in_path[i+1] == OS_SEP){
+            if(i < strlen(in_path)-1){
+                strcpy(in_path+i,in_path+(i+1));
+            }else{
+                in_path[i+1] = 0x00;
+            }
+            
+        }
+    }
+}
+
 // Should our path be skipped?
 int path_ignored(char* in_path){
+    char orig_path[1024] = {0x00};
+    strcpy(orig_path,in_path);
+    #if defined _WIN32
+    to_lowercase(orig_path);
+    #endif
+    fix_separators(orig_path);
+
     if(!first_ignore_entry){return 0;}
     PFS_IGNORE_ENTRY centry = first_ignore_entry;
     while(centry){
-        if(!strncmp(in_path,centry->path,strlen(centry->path))){
-            return 1;
-        }
+        
+        #if defined _WIN32
+            int result = strnicmp(orig_path,centry->path,strlen(centry->path));
+        #else
+            int result = strncmp(orig_path,centry->path,strlen(centry->path));
+        #endif
+        if(!result){/*DBG_printf("Path Ignored:%s!",orig_path);*/return 1;}
         centry = centry->next;
     }
     return 0;
@@ -104,6 +137,7 @@ void init_fs_root(){
     #else
     strcpy(fs_root,env_fs_root);
     #endif
+    add_path_to_ignore_list((char*)env_fs_root);   
 }
 
 
@@ -148,6 +182,7 @@ void init_fs_mode(){
 }
 
 void init_fs(){
+    init_fs_ignore_list();
     init_fs_root();
     init_fs_home();
     fs_init=1;
@@ -165,7 +200,8 @@ typedef struct _PDXPATH{
     int original_parent_exists;
     int redirected_path_exists;
     int redirected_path_is_symlink;
-    int redirected_parent_exists;    
+    int redirected_parent_exists;   
+    int is_home_subpath; 
     int is_redirected_subpath;
     int is_wildcard_path;
     int create_parent_path;
@@ -182,19 +218,7 @@ void get_parent_path(char* in_path, char* out_parent){
     strncpy(out_parent,in_path,i+1);
 }
 
-// Replaces duplicate separators
-void fix_separators(char* in_path){
-    for(int i=0;i<strlen(in_path)-1;i++){
-        if(in_path[i] == OS_SEP && in_path[i+1] == OS_SEP){
-            if(i < strlen(in_path)-1){
-                strcpy(in_path+i,in_path+(i+1));
-            }else{
-                in_path[i+1] = 0x00;
-            }
-            
-        }
-    }
-}
+
 
 void create_parent_path(char* parent_path){
     char working_path[1024] = {0x00};
@@ -224,6 +248,7 @@ void generate_path_info(PPDXPATH sp){
     #endif
     fix_separators(sp->original_path);    
     char working_path[1024];
+    sp->is_home_subpath = 0;
     sp->original_path_exists = path_exists(sp->original_path);
 
     get_parent_path(sp->original_path,sp->original_parent);
@@ -236,6 +261,7 @@ void generate_path_info(PPDXPATH sp){
     strcpy(sp->redirected_path,fs_root);
     strcat(sp->redirected_path,OS_SSEP);
     if(!strncmp(fs_home,sp->original_path,strlen(fs_home))){
+        sp->is_home_subpath = 1;
         strcat(sp->redirected_path,FAKE_HOME);
         strcat(sp->redirected_path,sp->original_path + strlen(fs_home));
     }else{
@@ -306,6 +332,7 @@ void print_sp_info(PPDXPATH sp, int is_directory, int is_read, int is_write, int
     DBG_printf("Original Parent Exists: %d\n",sp->original_parent_exists);
     DBG_printf("Wildcard Path: %d\n",sp->is_wildcard_path);
     DBG_printf("Is a Redirected Subpath: %d\n",sp->is_redirected_subpath);
+    DBG_printf("Is Home Subpath: %d\n",sp->is_home_subpath);
     DBG_printf("Redirected Path: %s\n",sp->redirected_path);
     DBG_printf("Redirected Path Exists: %d\n",sp->redirected_path_exists);
     DBG_printf("Redirected Path is Symlink: %d\n",sp->redirected_path_is_symlink);
@@ -338,7 +365,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     print_sp_info(sp, is_directory, is_read, is_write, fail_if_exist, fail_if_not_exist);
     // 'Fix' for access case
     if(!is_read && !is_write){is_read = 1;}
-
+    
     // Read Only Handling First
     if(is_read && !is_write){
         if(!fs_read_isolate && (sp->is_redirected_subpath || !sp->redirected_path_exists)){
@@ -351,7 +378,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     }
 
     // From this Point Onward - We're in WriteLand!
-    
+
     // If this is Windows and the path isn't a filesystem path (e.g. no :), we'll skip it for now...
     #if defined _WIN32
     if(!strstr(in_abspath,":")){
