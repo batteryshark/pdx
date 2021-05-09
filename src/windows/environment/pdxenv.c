@@ -3,6 +3,7 @@
 #include "../common/iniparser/iniparser.h"
 #include "../common/iniparser/dictionary.h"
 #include "../common/mem.h"
+#include "../../shared/dbg.h"
 
 typedef BOOL __stdcall tGetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer);
 typedef BOOL __stdcall tGetUserNameW(LPWSTR lpBuffer, LPDWORD pcbBuffer);
@@ -48,43 +49,48 @@ typedef struct _DRIVE_MAP_ENTRY{
 
 }DRIVE_MAP_ENTRY,*PDRIVE_MAP_ENTRY;
 
-const char* get_username(){
-    if(!config){return NULL;}
-    return iniparser_getstring(config,"global:username",NULL);
-}
-
-int get_drive_map_info(char root_letter,PDRIVE_MAP_ENTRY map_entry){
-    if(!config){return 0;}
-    char kval[128] = {0x00};
-    sprintf(kval,"drive_map_%c:type",root_letter);    
-    map_entry->drive_type = iniparser_getint(config, kval, -1);
-    if(map_entry->drive_type == -1){return 0;}
-    sprintf(kval,"drive_map_%c:serial",root_letter);
-    map_entry->drive_serial = iniparser_getint(config, kval, 0);
-    sprintf(kval,"drive_map_%c:label",root_letter);
-    const char* s = NULL;
-    s = iniparser_getstring(config, kval, "New Volume");
-    strncpy(map_entry->volume_label,s,sizeof(map_entry->volume_label));
-
-    sprintf(kval,"drive_map_%c:filesystem",root_letter);    
-    s = iniparser_getstring(config, kval, "NTFS");
-    strncpy(map_entry->volume_filesystem,s,sizeof(map_entry->volume_filesystem));
-
-    sprintf(kval,"drive_map_%c:flags",root_letter);    
-    map_entry->flags = iniparser_getint(config, kval, 0);
-
-    sprintf(kval,"drive_map_%c:max_component_length",root_letter);    
-    map_entry->max_component_length = iniparser_getint(config, kval, 32768);
-
-    return 1;
-}
-
 void load_config(){
     get_config_file_path();
     config = iniparser_load(path_to_config_file);
 }
 
+
+const char* get_username(){
+    // Load Our Environment Configuration
+    if(!config){load_config();}    
+    if(!config){return NULL;}
+    return iniparser_getstring(config,"global:username",NULL);
+}
+
+int get_drive_map_info(char root_letter,PDRIVE_MAP_ENTRY map_entry){
+    if(!config){load_config();}        
+    if(!config){return 0;}
+    
+    char kval[128] = {0x00};
+    sprintf(kval,"drive_map_%c:type",root_letter);    
+    map_entry->drive_type = iniparser_getint(config, kval, -1);
+    
+    if(map_entry->drive_type == -1){return 0;}
+    sprintf(kval,"drive_map_%c:serial",root_letter);
+    map_entry->drive_serial = iniparser_getint(config, kval, 0);
+    
+    sprintf(kval,"drive_map_%c:label",root_letter);
+    const char* s = NULL;
+    s = iniparser_getstring(config, kval, "New Volume");
+    strncpy(map_entry->volume_label,s,sizeof(map_entry->volume_label));
+    sprintf(kval,"drive_map_%c:filesystem",root_letter);    
+    s = iniparser_getstring(config, kval, "NTFS");
+    strncpy(map_entry->volume_filesystem,s,sizeof(map_entry->volume_filesystem));
+    sprintf(kval,"drive_map_%c:flags",root_letter);    
+    map_entry->flags = iniparser_getint(config, kval, 0);
+    sprintf(kval,"drive_map_%c:max_component_length",root_letter);    
+    map_entry->max_component_length = iniparser_getint(config, kval, 32768);
+    return 1;
+}
+
+
 int get_drive_strings(unsigned char* drivestrings_buffer, int is_unicode){
+    if(!config){load_config();}        
     if(!config){return 0;}
     char kval[128] = {0x00};
     char dstrings[8] = {0x00};
@@ -109,8 +115,27 @@ int get_drive_strings(unsigned char* drivestrings_buffer, int is_unicode){
     return offset;
 }
 
+int is_letter(char val){
+    if(val > 0x60 && val < 0x7B){return 1;}
+    if(val > 0x40 && val < 0x5B){return 1;}
+    return 0;
+}
 
+int lower(int argument){
+    if (argument >= 'A' && argument <= 'Z')
+        return argument + 'a' - 'A';
+    else
+        return argument;
+}
 
+char find_drive_letter(unsigned char* in_path, unsigned int in_len){
+    for(int i=0;i<in_len;i++){
+        if(in_path[i] == ':'){            
+            return (char)lower(in_path[i-1]);
+            }
+    }
+    return 0;
+}
 
 
 BOOL __stdcall x_GetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer){
@@ -143,16 +168,18 @@ BOOL __stdcall x_GetUserNameW(LPWSTR lpBuffer, LPDWORD pcbBuffer){
 }
 
 UINT __stdcall x_GetDriveTypeA(LPCSTR lpRootPathName){
-	DRIVE_MAP_ENTRY dme;
-    if(!get_drive_map_info(lpRootPathName[0],&dme)){
+	DRIVE_MAP_ENTRY dme = {0x00};    
+    char drive_letter = find_drive_letter((unsigned char*)lpRootPathName,strlen(lpRootPathName));
+    if(!drive_letter || !get_drive_map_info(drive_letter,&dme)){
         return k32_GetDriveTypeA(lpRootPathName);
     }
 	return dme.drive_type;
 }
 
 UINT __stdcall x_GetDriveTypeW(LPCWSTR lpRootPathName){
-	DRIVE_MAP_ENTRY dme;
-    if(!get_drive_map_info((char)lpRootPathName[0],&dme)){
+	DRIVE_MAP_ENTRY dme = {0x00};
+    char drive_letter = find_drive_letter((unsigned char*)lpRootPathName,wcslen(lpRootPathName)*2);
+    if(!drive_letter || !get_drive_map_info(drive_letter,&dme)){
         return k32_GetDriveTypeW(lpRootPathName);
     }
 	return dme.drive_type;
@@ -243,9 +270,7 @@ BOOL x_GetVolumeInformationW(LPCWSTR lpRootPathName,LPWSTR lpVolumeNameBuffer,DW
 
 
 int init_library(void){   
-    // Load Our Environment Configuration
-    load_config();
-    if(!config){return 0;}
+   
     
     // Perform any Syscall Hooks we Need at This Level
     if (!inline_hook("advapi32.dll", "GetUserNameW", SYSCALL_STUB_SIZE, (void*)x_GetUserNameW, (void**)&advapi32_GetUserNameW)) { return FALSE; }
