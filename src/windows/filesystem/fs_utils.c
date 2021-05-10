@@ -241,16 +241,15 @@ BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoin
     memset(&iosb,0,sizeof(IO_STATUS_BLOCK));
     memset(&nameMnt,0,sizeof(ANY_BUFFER));
     DWORD bytesReturned = 0;
+    
     nameMnt.TargetName.DeviceNameLength = (USHORT)(2 * wcslen(device_path));
     wcscpy(nameMnt.TargetName.DeviceName, device_path);
-    NTSTATUS res = NtDeviceIoControlFile(hmpm, NULL, 0, NULL, &iosb, IOCTL_MOUNTMGR_QUERY_DOS_VOLUME_PATH, &nameMnt, sizeof(nameMnt), &nameMnt, sizeof(nameMnt));
-    
+    NTSTATUS res = NtDeviceIoControlFile(hmpm, NULL, 0, NULL, &iosb, IOCTL_MOUNTMGR_QUERY_DOS_VOLUME_PATH, &nameMnt, sizeof(nameMnt), &nameMnt, sizeof(nameMnt));    
+    NtClose(hmpm);
     if (res || !nameMnt.TargetPaths.MultiSzLength) {
-        DBG_printf("DeviceIOControlFile: %04X %d",res,nameMnt.TargetPaths.MultiSzLength);
-        NtClose(hmpm);
         return FALSE;
     }
-    NtClose(hmpm);
+
     wcscat(dos_mountpoint, nameMnt.TargetPaths.MultiSz);
     wcscat(dos_mountpoint, L"\\");
     return TRUE;
