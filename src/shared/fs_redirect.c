@@ -137,7 +137,7 @@ void init_fs_root(){
     #else
     strcpy(fs_root,env_fs_root);
     #endif
-    add_path_to_ignore_list((char*)env_fs_root);   
+    
 }
 
 
@@ -258,48 +258,55 @@ void generate_path_info(PPDXPATH sp){
     sp->is_redirected_subpath = (!strncmp(fs_root,sp->original_path,strlen(fs_root)));
     // If this is a home path, we have to make adjustments for the mapped path.
     sp->redirected_path = calloc(1,1024);
-    strcpy(sp->redirected_path,fs_root);
-    strcat(sp->redirected_path,OS_SSEP);
-    if(!strncmp(fs_home,sp->original_path,strlen(fs_home))){
-        sp->is_home_subpath = 1;
-        strcat(sp->redirected_path,FAKE_HOME);
-        strcat(sp->redirected_path,sp->original_path + strlen(fs_home));
+    if(sp->is_redirected_subpath){
+        strcpy(sp->redirected_path,sp->original_path);
     }else{
-        // We have to remove any ADS crap and drive colon
-        // We're also skipping the NT Prefix        
-        #if defined _WIN32
-        if(strstr(sp->original_path,NT_PREFIX)){
-            strcpy(working_path,sp->original_path+strlen(NT_PREFIX));
+        strcpy(sp->redirected_path,fs_root);
+        strcat(sp->redirected_path,OS_SSEP);
+        if(!strncmp(fs_home,sp->original_path,strlen(fs_home))){
+            sp->is_home_subpath = 1;
+            strcat(sp->redirected_path,FAKE_HOME);
+            strcat(sp->redirected_path,sp->original_path + strlen(fs_home));
         }else{
-            strcpy(working_path,sp->original_path);
-        }        
-        for(int i=0;i<strlen(working_path);i++){
-            if(working_path[i] == ':'){
-                strcpy(working_path+i,working_path+(i+1));
-                break;
+            // We have to remove any ADS crap and drive colon
+            // We're also skipping the NT Prefix        
+            #if defined _WIN32
+            if(strstr(sp->original_path,NT_PREFIX)){
+                strcpy(working_path,sp->original_path+strlen(NT_PREFIX));
+            }else{
+                strcpy(working_path,sp->original_path);
+            }        
+            for(int i=0;i<strlen(working_path);i++){
+                if(working_path[i] == ':'){
+                    strcpy(working_path+i,working_path+(i+1));
+                    break;
+                }
             }
-        }
 
-        // Deal with Alternate data streams -_-
-        int is_ads = 0;
-        for(int i=0;i<strlen(working_path);i++){
-            if(working_path[i] == ':'){
-                working_path[i] = '_';
-                is_ads = 1;
+            // Deal with Alternate data streams -_-
+            int is_ads = 0;
+            for(int i=0;i<strlen(working_path);i++){
+                if(working_path[i] == ':'){
+                    working_path[i] = '_';
+                    is_ads = 1;
+                }
             }
+            strcat(sp->redirected_path,working_path);
+            if(is_ads){
+                strcat(sp->redirected_path,".ads");
+            }
+            #else
+            strcat(sp->redirected_path,sp->original_path);        
+            #endif
         }
-        strcat(sp->redirected_path,working_path);
-        if(is_ads){
-            strcat(sp->redirected_path,".ads");
-        }
-        #else
-        strcat(sp->redirected_path,sp->original_path);        
-        #endif
     }
+ 
     sp->redirected_path_exists = path_exists(sp->redirected_path);
     sp->redirected_path_is_symlink = path_is_symlink(sp->redirected_path);
     get_parent_path(sp->redirected_path,sp->redirected_parent);
     sp->redirected_parent_exists = path_exists(sp->redirected_parent);
+    sp->original_path_is_symlink = path_is_symlink(sp->original_path);
+    sp->resolved_original_path_exists = 0;
 
     if(sp->is_wildcard_path){
         sp->redirected_path_is_symlink = 0;
@@ -307,19 +314,16 @@ void generate_path_info(PPDXPATH sp){
         sp->original_path_exists = sp->original_parent_exists;
         sp->redirected_path_exists = sp->redirected_parent_exists;
     }else{
-        sp->original_path_is_symlink = path_is_symlink(sp->original_path);
-        if(sp->original_path_exists && sp->original_path_is_symlink){
-            resolve_abspath(sp->original_path,sp->resolved_original_path,1);
-        }else{
-            strcpy(sp->resolved_original_path,sp->original_path);
-        }
-        if(sp->redirected_path_is_symlink){
+        if(sp->redirected_path_exists){
             resolve_abspath(sp->redirected_path,sp->resolved_original_path,1);
-        }
+            sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
+        }else if(sp->original_path_exists){
+            resolve_abspath(sp->original_path,sp->resolved_original_path,1);
+            sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
+        }        
     }
 
     sp->create_parent_path = (sp->original_parent_exists && ! sp->redirected_parent_exists);
-    sp->resolved_original_path_exists = path_exists(sp->resolved_original_path);
 }
 static int info_lock = 0;
 void print_sp_info(PPDXPATH sp, int is_directory, int is_read, int is_write, int fail_if_exist, int fail_if_not_exist){
