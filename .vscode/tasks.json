@@ -82,6 +82,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
@@ -107,6 +111,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
@@ -192,7 +200,8 @@
                 "x86_64-w64-mingw32-gcc",
 				"-shared",
                 "-fshort-wchar",              			
-				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/windows/common/*.c",
+                "${workspaceFolder}/src/shared/dbg.c",				
 				"${workspaceFolder}/src/windows/common/iniparser/*.c",
                 "${workspaceFolder}/src/windows/environment/*.c",
                 "-static",      
@@ -203,6 +212,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
@@ -211,8 +224,10 @@
             "command": [
                 "i686-w64-mingw32-gcc",
 				"-shared",
-                "-fshort-wchar",              			
-				"${workspaceFolder}/src/windows/common/*.c",				
+                "-fshort-wchar",         
+                "-DBYPASS_ENABLED",                     			
+				"${workspaceFolder}/src/windows/common/*.c",	
+                "${workspaceFolder}/src/shared/dbg.c",				                			
 				"${workspaceFolder}/src/windows/common/iniparser/*.c",
                 "${workspaceFolder}/src/windows/environment/*.c",
                 "-static",      
@@ -223,6 +238,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },    
         {
@@ -231,7 +250,8 @@
             "command": [
                 "x86_64-w64-mingw32-gcc",
 				"-shared",
-                "-fshort-wchar",              			
+                "-fshort-wchar",   
+                "-DBYPASS_ENABLED",           			
 				"${workspaceFolder}/src/windows/common/*.c",				
 				"${workspaceFolder}/src/windows/common/ntmin/*.c",				                
 				"${workspaceFolder}/src/shared/*.c",
@@ -245,8 +265,37 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
+        {
+            "label": "[TEST] PDXFS [Windows 64-bit]",
+            "type": "shell",
+            "command": [
+                "x86_64-w64-mingw32-gcc",
+                "-fshort-wchar",                              			
+				"${workspaceFolder}/src/windows/common/*.c",				
+				"${workspaceFolder}/src/windows/common/ntmin/*.c",				                
+				"${workspaceFolder}/src/shared/*.c",
+                "${workspaceFolder}/src/windows/filesystem/fs_utils.c",
+                "${workspaceFolder}/src/windows/filesystem/test_filesystem.c",                
+                "-static",      
+                "-static-libgcc",
+				"-lntdll",                  
+                "-o ${workspaceFolder}/bin/test_pdxfs.exe"				
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },        
         {
             "label": "PDXFS Library [Windows 32-bit]",
             "type": "shell",
@@ -267,6 +316,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },               
 
