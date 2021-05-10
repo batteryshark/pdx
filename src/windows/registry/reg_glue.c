@@ -273,7 +273,6 @@ BOOL nt_query_key(HANDLE KeyHandle, KEY_INFORMATION_CLASS KeyInformationClass, P
     if(!path_to_monitored_key){return FALSE;}
     // If we're doing this class, we can just do it here.
     if(KeyInformationClass == KeyNameInformation){
-        KEY_NAME_INFORMATION* KeyInformation;
         unsigned int total_sz = ((strlen(path_to_monitored_key) + 1) * 2) + 4;
         if(ResultLength){
             *ResultLength = total_sz;
@@ -299,8 +298,9 @@ BOOL nt_query_key(HANDLE KeyHandle, KEY_INFORMATION_CLASS KeyInformationClass, P
             return TRUE;  
         }
         if(!KeyInformation){return TRUE;}
-        KeyInformation->NameLength = total_sz - 4;
-        ChartoWideChar(path_to_monitored_key,KeyInformation->Name);
+        KEY_NAME_INFORMATION* kni = (KEY_NAME_INFORMATION*)KeyInformation;
+        kni->NameLength = total_sz - 4;
+        ChartoWideChar(path_to_monitored_key,kni->Name);
         *status = 0;
         return TRUE;
     }else{
