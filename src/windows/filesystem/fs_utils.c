@@ -17,8 +17,7 @@ struct MOUNTMGR_VOLUME_PATHS { ULONG MultiSzLength; WCHAR MultiSz[1]; };
 typedef union _ANY_BUFFER {
     struct MOUNTMGR_TARGET_NAME TargetName;
     struct MOUNTMGR_VOLUME_PATHS TargetPaths;
-    //char Buffer[4096];
-    char Buffer[32];
+    char Buffer[4096];
 }ANY_BUFFER;
 
 
@@ -232,21 +231,26 @@ BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoin
     if(!device_path || !dos_mountpoint){return FALSE;}
 
     HANDLE hmpm = INVALID_HANDLE_VALUE;
-    if (!get_mpm_handle(&hmpm) || !hmpm || hmpm == INVALID_HANDLE_VALUE) {
+    get_mpm_handle(&hmpm);
+    if (!hmpm || hmpm == INVALID_HANDLE_VALUE) {
         return FALSE;
     }
     // Step 5: DeviceIOControl to query dos volume, get the drive letter string.
-    IO_STATUS_BLOCK iosb = {0x00};
-    DWORD bytesReturned = 0;
+    IO_STATUS_BLOCK iosb;
     ANY_BUFFER nameMnt;
+    memset(&iosb,0,sizeof(IO_STATUS_BLOCK));
+    memset(&nameMnt,0,sizeof(ANY_BUFFER));
+    DWORD bytesReturned = 0;
     nameMnt.TargetName.DeviceNameLength = (USHORT)(2 * wcslen(device_path));
     wcscpy(nameMnt.TargetName.DeviceName, device_path);
     NTSTATUS res = NtDeviceIoControlFile(hmpm, NULL, 0, NULL, &iosb, IOCTL_MOUNTMGR_QUERY_DOS_VOLUME_PATH, &nameMnt, sizeof(nameMnt), &nameMnt, sizeof(nameMnt));
-    NtClose(hmpm);
+    
     if (res || !nameMnt.TargetPaths.MultiSzLength) {
+        DBG_printf("DeviceIOControlFile: %04X %d",res,nameMnt.TargetPaths.MultiSzLength);
+        NtClose(hmpm);
         return FALSE;
     }
-
+    NtClose(hmpm);
     wcscat(dos_mountpoint, nameMnt.TargetPaths.MultiSz);
     wcscat(dos_mountpoint, L"\\");
     return TRUE;
