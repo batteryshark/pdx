@@ -64,15 +64,12 @@ BOOL get_fail_if_not_exists(DWORD flags){
 }
 
 int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle, int is_directory, int is_read, int is_write,int fail_if_exist, int fail_if_not_exist, PUNICODE_STRING unicodestr_redirected_path){
-
+    
     // Make a copy of our instr to ensure it is properly truncated with nulls.
     wchar_t* src_clean_buffer = (wchar_t*)calloc(1,src_len+2);
     memcpy(src_clean_buffer,src_buffer,src_len);
-
-    // If a target doesn't have a DOS drive for now, we'll bypass.
-    if(!wcsstr(src_clean_buffer,L":")){ free(src_clean_buffer); return 0;}
-
-
+    
+        
     // Resolve an Absolute Path to our Inpath
     wchar_t* w_abspath = calloc(1,X_MAX_PATH*2);
     char* abspath = calloc(1,X_MAX_PATH);
@@ -80,6 +77,8 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
     free(src_clean_buffer); 
     WideChartoChar(w_abspath,abspath);
     free(w_abspath);
+    // If a target doesn't have a DOS drive for now, we'll bypass.
+    if(!strstr(abspath,":")){ free(abspath); return 0;}
 
     // Send Path to our internal fs_redirect()
     char* redirected_path = NULL;
