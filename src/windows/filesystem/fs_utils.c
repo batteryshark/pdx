@@ -2,31 +2,23 @@
 #include <stdio.h>
 #include "../common/ntmin/ntmin.h" 
 #include "../../shared/strutils.h"
+#include "../../shared/dbg.h"
 #include "fs_utils.h"
 
-#define BYPASS_ENABLED
 
 
-typedef struct _MOUNTMGR_TARGET_NAME {
-    USHORT DeviceNameLength;
-    WCHAR  DeviceName[1];
-} MOUNTMGR_TARGET_NAME, * PMOUNTMGR_TARGET_NAME;
-
-typedef struct _MOUNTMGR_VOLUME_PATHS {
-    ULONG MultiSzLength;
-    WCHAR MultiSz[1];
-}MOUNTMGR_VOLUME_PATHS, * PMOUNTMGR_VOLUME_PATHS;
+struct MOUNTMGR_TARGET_NAME { USHORT DeviceNameLength; WCHAR DeviceName[1]; };
+struct MOUNTMGR_VOLUME_PATHS { ULONG MultiSzLength; WCHAR MultiSz[1]; };
 
 #define MOUNTMGRCONTROLTYPE ((ULONG) 'm')
 #define IOCTL_MOUNTMGR_QUERY_DOS_VOLUME_PATH \
     CTL_CODE(MOUNTMGRCONTROLTYPE, 12, METHOD_BUFFERED, FILE_ANY_ACCESS)
 
 typedef union _ANY_BUFFER {
-    MOUNTMGR_TARGET_NAME TargetName;
-    MOUNTMGR_VOLUME_PATHS TargetPaths;
-    FILE_NAME_INFORMATION NameInfo;
-    UNICODE_STRING UnicodeString;
-    WCHAR Buffer[USHRT_MAX];
+    struct MOUNTMGR_TARGET_NAME TargetName;
+    struct MOUNTMGR_VOLUME_PATHS TargetPaths;
+    //char Buffer[4096];
+    char Buffer[32];
 }ANY_BUFFER;
 
 
@@ -237,13 +229,15 @@ BOOL get_mpm_handle(PHANDLE hp) {
 
 
 BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoint) {
+    if(!device_path || !dos_mountpoint){return FALSE;}
+
     HANDLE hmpm = INVALID_HANDLE_VALUE;
     if (!get_mpm_handle(&hmpm) || !hmpm || hmpm == INVALID_HANDLE_VALUE) {
         return FALSE;
     }
     // Step 5: DeviceIOControl to query dos volume, get the drive letter string.
-    IO_STATUS_BLOCK iosb;
-    DWORD bytesReturned;
+    IO_STATUS_BLOCK iosb = {0x00};
+    DWORD bytesReturned = 0;
     ANY_BUFFER nameMnt;
     nameMnt.TargetName.DeviceNameLength = (USHORT)(2 * wcslen(device_path));
     wcscpy(nameMnt.TargetName.DeviceName, device_path);
@@ -261,7 +255,7 @@ BOOL get_dos_mountpoint_from_device(wchar_t* device_path, wchar_t* dos_mountpoin
 int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path){
     // Bypass if there isn't a valid handle.
     if (!hObject || hObject == INVALID_HANDLE_VALUE) {
-        if(in_path){wcscpy(out_path,in_path);}
+        wcscpy(out_path,in_path);
         return FALSE;
     }
 
@@ -277,21 +271,18 @@ int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path)
     unsigned int tail_offset = 0;
     if (!get_device_root_string(ObjectInfo->Name.Buffer, device_root_name, &tail_offset)) {
         free(ObjectInfo);
-        if(in_path){wcscpy(out_path,in_path);}
+        wcscpy(out_path,in_path);
         return FALSE;
     }
 
     // Step 3: Get the mounted DOS path from the device root.
-    wchar_t* working_path = (wchar_t*)calloc(1, X_MAX_PATH);
-    if (!working_path) { 
-        free(ObjectInfo);        
-        if(in_path){wcscpy(out_path,in_path);}
-        return FALSE; 
-    }
-    wcscat(working_path, L"\\??\\");
+    wchar_t* working_path = malloc(X_MAX_PATH);
+    memset(working_path,0x00,X_MAX_PATH);
+    wcscpy(working_path, L"\\??\\");    
     if (!get_dos_mountpoint_from_device(device_root_name, working_path)) {
         free(ObjectInfo);
-        if(in_path){wcscpy(out_path,in_path);}
+        free(working_path);
+        wcscpy(out_path,in_path);
         return FALSE;
     }
 
@@ -299,11 +290,13 @@ int get_abspath_from_handle(HANDLE hObject, wchar_t* in_path, wchar_t* out_path)
     if (tail_offset) {
         wcscat(working_path, ObjectInfo->Name.Buffer + tail_offset);
     }
-    if (in_path) {
+    free(ObjectInfo);
+
+    if (in_path && wcslen(in_path)) {
         wcscat(working_path, L"\\");
         wcscat(working_path, in_path);
     }
-    free(ObjectInfo);
+
     wcscpy(out_path,working_path); 
     free(working_path);
 
@@ -315,7 +308,7 @@ void resolve_abspath_native(wchar_t* in_path, wchar_t* out_path, int follow_syml
     DWORD add_flags = 0;
     if(!follow_symlinks){add_flags |= FILE_FLAG_OPEN_REPARSE_POINT;}
     if(wrapped_createfile(in_path,&hObject,add_flags)){return;}
-    get_abspath_from_handle(hObject,NULL,out_path);
+    get_abspath_from_handle(hObject,(wchar_t*)L"",out_path);
     NtClose(hObject);
 }
 
