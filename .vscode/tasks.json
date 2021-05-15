@@ -194,8 +194,8 @@
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                //"-o ${workspaceFolder}/bin/pdxreg32.dll"				
-                "-o c:/zsx2/pdxreg32.dll"				                
+                "-o ${workspaceFolder}/bin/pdxreg32.dll"				
+                
             ],
             "presentation": {
                 "reveal": "always",
