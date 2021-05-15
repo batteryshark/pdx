@@ -52,6 +52,10 @@ extern "C" {
 #define STATUS_BUFFER_TOO_SMALL 0xC0000023
 #endif
 
+#ifndef STATUS_OBJECT_NAME_NOT_FOUND
+#define STATUS_OBJECT_NAME_NOT_FOUND 0xC0000034
+#endif
+
 #ifndef STATUS_UNSUCCESSFUL
 #define STATUS_UNSUCCESSFUL ((NTSTATUS)0xC0000001L)
 #endif
@@ -1089,7 +1093,7 @@ extern "C" {
     //-----------------------------------------------------------------------------
     // Registry functions
 
-
+#pragma pack(1)
     typedef enum _KEY_INFORMATION_CLASS
     {
         KeyBasicInformation,                    // 0x00
@@ -1114,6 +1118,11 @@ extern "C" {
         WCHAR   Name[1];            // Variable length string
 
     } KEY_BASIC_INFORMATION, * PKEY_BASIC_INFORMATION;
+
+    typedef struct _KEY_HANDLE_TAGS_INFORMATION
+    {
+        ULONG HandleTags;
+    } KEY_HANDLE_TAGS_INFORMATION, *PKEY_HANDLE_TAGS_INFORMATION;
 
 
     typedef struct _KEY_NODE_INFORMATION
@@ -1211,7 +1220,7 @@ extern "C" {
         ULONG   DataLength;
         UCHAR   Data[1];            // Variable size
     } KEY_VALUE_PARTIAL_INFORMATION, * PKEY_VALUE_PARTIAL_INFORMATION;
-
+ 
 
 
     NTSYSAPI
