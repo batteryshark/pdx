@@ -17,7 +17,7 @@ HKCU/HKU -> \registry\user
 
 - We also ignore wow6432node translation - all keys are referenced as they would be on their native architecture.
 
-- In addition, any keys that specify a particular SID (such as keys that were created for a specific user) are anonymized for portability. This may become a configurable option in the future.
+- In addition, any keys that specify a particular SID (such as keys that were created for a specific user) are anonymized for portability by default. 
 
 ```
 [Example]
@@ -26,7 +26,7 @@ HKU\S-1-5-21-1431320325-1297723084-2957387153-1001\Console -> \registry\user\Con
 
 ## Environment Variables
 - PDXREG: A full path to an ini file that specifies keys/data. If unset, the library will default to the current working directory to find a file named "pdxreg.ini". 
-
+- PDXREG_AKP: Defines if keypaths should be anonymized. Keypaths WILL be anonymized if this is left unset. Use this if you need to modify legit SID subkeys of another user while using this library.
 ## Registry INI Format
 
 The ini file has the following format:
