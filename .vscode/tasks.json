@@ -157,8 +157,10 @@
 				"-shared",
                 "-fshort-wchar",              			
 				"${workspaceFolder}/src/windows/common/*.c",				
-				"${workspaceFolder}/src/shared/strutils.c",		                
+				"${workspaceFolder}/src/shared/strutils.c",
+                "${workspaceFolder}/src/shared/dbg.c",
 				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/common/vector/*.c",
                 "${workspaceFolder}/src/windows/common/ntmin/ntmin.c",		
                 "${workspaceFolder}/src/windows/registry/*.c",
                 "-static",      
@@ -169,6 +171,10 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
@@ -179,18 +185,25 @@
 				"-shared",
                 "-fshort-wchar",              			
 				"${workspaceFolder}/src/windows/common/*.c",
-				"${workspaceFolder}/src/shared/strutils.c",		                                			
+				"${workspaceFolder}/src/shared/strutils.c",
+                "${workspaceFolder}/src/shared/dbg.c",	                		                                			
 				"${workspaceFolder}/src/windows/common/iniparser/*.c",
+                "${workspaceFolder}/src/windows/common/vector/*.c",
                 "${workspaceFolder}/src/windows/common/ntmin/ntmin.c",		
                 "${workspaceFolder}/src/windows/registry/*.c",
                 "-static",      
                 "-static-libgcc",
 				"-lntdll",                  
-                "-o ${workspaceFolder}/bin/pdxreg32.dll"				
+                //"-o ${workspaceFolder}/bin/pdxreg32.dll"				
+                "-o c:/zsx2/pdxreg32.dll"				                
             ],
             "presentation": {
                 "reveal": "always",
                 "panel": "shared"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
             }
         },
         {
@@ -224,8 +237,7 @@
             "command": [
                 "i686-w64-mingw32-gcc",
 				"-shared",
-                "-fshort-wchar",         
-                "-DBYPASS_ENABLED",                     			
+                "-fshort-wchar",                             			
 				"${workspaceFolder}/src/windows/common/*.c",	
                 "${workspaceFolder}/src/shared/dbg.c",				                			
 				"${workspaceFolder}/src/windows/common/iniparser/*.c",
@@ -302,7 +314,8 @@
             "command": [
                 "i686-w64-mingw32-gcc",
 				"-shared",
-                "-fshort-wchar",              			
+                "-fshort-wchar", 
+                "-DBYPASS_ENABLED",                              			
 				"${workspaceFolder}/src/windows/common/*.c",
 				"${workspaceFolder}/src/windows/common/ntmin/*.c",
 				"${workspaceFolder}/src/shared/*.c",

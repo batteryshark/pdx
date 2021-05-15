@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-
-//#define DEBUG_BUILD
+#include "strutils.h"
+#define DEBUG_BUILD
 
 #if _WIN32
 #include <windows.h>
@@ -23,9 +23,8 @@ void DBG_printf(const char* fmt, ...) {
 void DBG_print_buffer(unsigned char* data, unsigned int len){
 #ifdef DEBUG_BUILD    
     char s[0x1000] = {0x00};
-    for(int i=0;i<len;i++){
-        sprintf(s,"%02x",data[i]);
-    }
+
+    BinToHex(data,len,s,sizeof(s));
     OutputDebugStringA(s);
 #endif
 }
