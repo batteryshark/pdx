@@ -4,7 +4,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "strutils.h"
-#define DEBUG_BUILD
+//#define DEBUG_BUILD
 
 #if _WIN32
 #include <windows.h>
