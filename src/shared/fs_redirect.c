@@ -205,6 +205,7 @@ typedef struct _PDXPATH{
     int is_redirected_subpath;
     int is_wildcard_path;
     int create_parent_path;
+    int nt_path;
 }PDXPATH,*PPDXPATH;
 
 void get_parent_path(char* in_path, char* out_parent){
@@ -243,10 +244,14 @@ void create_parent_path(char* parent_path){
 }
 
 void generate_path_info(PPDXPATH sp){
+    sp->nt_path = 0;
     #if defined _WIN32
     to_lowercase(sp->original_path);
     #endif
     fix_separators(sp->original_path);   
+    if(strstr(sp->original_path,NT_PREFIX)){
+        sp->nt_path = 1;
+    }
     char working_path[1024];
     sp->is_home_subpath = 0;
     sp->original_path_exists = path_exists(sp->original_path);
@@ -363,7 +368,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     if(!fs_root){return 0;}
     // Check ignore list and return at this point.    
     if(path_ignored(in_abspath)){return 0;}    
-
+    
     PPDXPATH sp = calloc(1,sizeof(PDXPATH));
     strcpy(sp->original_path,in_abspath);
     generate_path_info(sp);
@@ -372,14 +377,32 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     // 'Fix' for access case
     if(!is_read && !is_write){is_read = 1;}
     
-    // Read Only Handling First
+    // Read Only Handling First - I'm going to long-hand this logic because it will make it easier to follow...
     if(is_read && !is_write){
-        if(!fs_read_isolate && (sp->is_redirected_subpath || !sp->redirected_path_exists)){
+
+        // If we're using read isolation, always redirect to our paths.
+        if(fs_read_isolate){
+            free(sp);
+            if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
+            return 1;
+        }
+
+        // If our read path is a redirected subpath already, we don't need to redirect.
+        if(sp->is_redirected_subpath){
+            free(sp);
+            free(*redirected_path);
+            return 0;            
+        }
+
+        // If the redirected path does not exist, but the original path does, bypass (fallback to original).
+        if(!sp->redirected_path_exists && sp->original_path_exists){
             free(sp);
             free(*redirected_path);
             return 0;
         }
+        // Otherwise, just redirect.
         free(sp);
+        if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
         return 1;
     }
 
@@ -417,6 +440,7 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
             delete_path(sp->redirected_path);
         }
         free(sp);
+        if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
         return 1;        
     }
 
@@ -433,5 +457,6 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     }
 
     free(sp);
+    if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
     return 1;
 }
