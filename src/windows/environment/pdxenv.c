@@ -4,6 +4,7 @@
 #include "../common/iniparser/dictionary.h"
 #include "../common/mem.h"
 #include "../../shared/dbg.h"
+#include "../../shared/strutils.h"
 
 typedef BOOL __stdcall tGetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer);
 typedef BOOL __stdcall tGetUserNameW(LPWSTR lpBuffer, LPDWORD pcbBuffer);
@@ -119,13 +120,6 @@ int is_letter(char val){
     if(val > 0x60 && val < 0x7B){return 1;}
     if(val > 0x40 && val < 0x5B){return 1;}
     return 0;
-}
-
-int lower(int argument){
-    if (argument >= 'A' && argument <= 'Z')
-        return argument + 'a' - 'A';
-    else
-        return argument;
 }
 
 char find_drive_letter(unsigned char* in_path, unsigned int in_len){
