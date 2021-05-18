@@ -44,13 +44,14 @@ void BinToHex(const unsigned char* buff, int length, char* output, int outLength
 	*output++ = '\0';
 }
 
-
+#ifndef lower
 int lower(int argument){
     if (argument >= 'A' && argument <= 'Z')
         return argument + 'a' - 'A';
     else
         return argument;
 }
+#endif
 void to_lowercase(char* in){
     for (int i = 0; in[i]; i++) {
         in[i] = lower(in[i]);
