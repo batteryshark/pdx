@@ -14,22 +14,16 @@ typedef BOOL tCreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, void
 static tNtCreateUserProcess* ntdll_NtCreateUserProcess = NULL;
 static tCreateProcessA* k32_CreateProcessA = NULL;
 static tOutputDebugStringA* k32_OutputDebugStringA = NULL;
-typedef struct _THREAD_BASIC_INFORMATION {
-	NTSTATUS                ExitStatus;
-	PVOID                   TebBaseAddress;
-	CLIENT_ID               ClientId;
-	KAFFINITY               AffinityMask;
-	KPRIORITY               Priority;
-	KPRIORITY               BasePriority;
-} THREAD_BASIC_INFORMATION, * PTHREAD_BASIC_INFORMATION;
+
 
 // I hate this
 // TODO: Replace CreateProcessA with NtCreateUserProcess to call our dropkick and bypass
 static int bypass_flag = 0;
 
-void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
+void spawn_process(int is_wow64, HANDLE pid, HANDLE tid, int leave_suspended){
     if(!k32_CreateProcessA){
         get_function_address("kernel32.dll", "CreateProcessA", (void**)&k32_CreateProcessA);
+        get_function_address("kernel32.dll", "OutputDebugStringA", (void**)&k32_OutputDebugStringA);
         if(!k32_CreateProcessA){return;}        
     }
 
@@ -52,8 +46,8 @@ void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
     }
     char cmd[1024] = {0x00};
     sprintf(cmd,"%s inject %s %d %d %d",loader_exe_path,bootstrap_path,pid,tid,leave_suspended);
-
-	PROCESS_INFORMATION pi;
+	
+    PROCESS_INFORMATION pi;
 	STARTUPINFOA Startup;
 	memset(&Startup,0x00, sizeof(Startup));
 	memset(&pi,0x00, sizeof(pi));
@@ -74,10 +68,10 @@ NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHa
     if (status) { return status; }
     // TODO - All the Process Context Switching Injection Stuff.
     THREAD_BASIC_INFORMATION tbi;
-    NtQueryInformationThread(*ThreadHandle, ThreadBasicInformation, &tbi, sizeof(tbi), 0);
+    memset(&tbi,0,sizeof(THREAD_BASIC_INFORMATION));
+    ULONG retlen = 0;
+    NtQueryInformationThread(*ThreadHandle, ThreadBasicInformation, &tbi, sizeof(THREAD_BASIC_INFORMATION), &retlen);
 
-    char request[64] = { 0x00 };
-    char response[64] = { 0x00 };
     int leave_suspended = 0;
     if (original_process_flags & CREATE_SUSPENDED) {
         leave_suspended = 1;
@@ -86,14 +80,14 @@ NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHa
     USHORT NativeMachine = 0;
     RtlWow64GetProcessMachines(*ProcessHandle, &ProcessMachine, &NativeMachine);
     int is_wow64 = (ProcessMachine != 0);
-    spawn_process(is_wow64, tbi.ClientId.UniqueProcess, tbi.ClientId.UniqueThread, leave_suspended);    
+    spawn_process(is_wow64, tbi.ClientId.UniqueProcess, tbi.ClientId.UniqueThread, leave_suspended);   
     return status;
 }
 
 void bootstrap_init(void){       
 
-    //get_function_address("kernel32.dll","OutputDebugStringA",(void**)&k32_OutputDebugStringA);
-    //k32_OutputDebugStringA("IN THERE\n");
+  //  get_function_address("kernel32.dll","OutputDebugStringA",(void**)&k32_OutputDebugStringA);
+
     char payload[0x1000] = {0x00};
     if(!getenv("PDXPL")){return;}   
     strcpy(payload,getenv("PDXPL"));    
