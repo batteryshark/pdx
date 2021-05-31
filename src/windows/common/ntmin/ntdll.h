@@ -4351,6 +4351,13 @@ extern "C" {
             IN PRTL_HEAP_PARAMETERS Definition OPTIONAL
         );
 
+NTSYSAPI 
+    ULONG
+    NTAPI
+    RtlGetProcessHeaps(
+        IN ULONG                MaxNumberOfHeaps,
+        OUT PVOID               *HeapArray 
+    );
 
     NTSYSAPI
         ULONG

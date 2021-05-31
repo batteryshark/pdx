@@ -50,8 +50,9 @@ void ChartoWideChar(char* in_str, wchar_t* dest_wc) {
 }
 
 HANDLE get_process_heap() {
-    PPEB pb = (PPEB)NtCurrentTeb()->ProcessEnvironmentBlock;
-    return (HANDLE)pb->ProcessHeap;
+    HANDLE pHeap = NULL;
+    RtlGetProcessHeaps(1,&pHeap);
+    return pHeap;
 }
 
 #ifndef malloc
