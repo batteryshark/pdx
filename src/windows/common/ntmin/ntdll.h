@@ -1781,6 +1781,18 @@ extern "C" {
 
     } SYSTEM_MODULE_INFORMATION, * PSYSTEM_MODULE_INFORMATION;
 
+typedef struct _THREAD_BASIC_INFORMATION {
+	NTSTATUS                ExitStatus;
+    #if __x86_64__
+    ULONG   Padding;
+    #endif
+	PVOID                   TebBaseAddress;
+	CLIENT_ID               ClientId;
+	KAFFINITY               AffinityMask;
+	KPRIORITY               Priority;
+	KPRIORITY               BasePriority;
+} THREAD_BASIC_INFORMATION, * PTHREAD_BASIC_INFORMATION;
+
     /*
     typedef struct _SYSTEM_VDM_INSTEMUL_INFO {
         ULONG SegmentNotPresent ;
