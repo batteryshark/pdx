@@ -6,12 +6,14 @@
 #define BOOTSTRAP_32 "pdxproc32.dll"
 #define BOOTSTRAP_64 "pdxproc64.dll"
 
+typedef void tOutputDebugStringA(const char* lpOutputString);
+
 typedef NTSTATUS __stdcall tNtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHandle, ACCESS_MASK ProcessDesiredAccess, ACCESS_MASK ThreadDesiredAccess, POBJECT_ATTRIBUTES ProcessObjectAttributes, POBJECT_ATTRIBUTES ThreadObjectAttributes, ULONG ProcessFlags, ULONG ThreadFlags, PRTL_USER_PROCESS_PARAMETERS ProcessParameters, PVOID CreateInfo, PVOID AttributeList);
 typedef BOOL tCreateProcessA(LPCSTR lpApplicationName, LPSTR lpCommandLine, void* lpProcessAttributes, void* lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo, LPPROCESS_INFORMATION lpProcessInformation);
 
 static tNtCreateUserProcess* ntdll_NtCreateUserProcess = NULL;
 static tCreateProcessA* k32_CreateProcessA = NULL;
-
+static tOutputDebugStringA* k32_OutputDebugStringA = NULL;
 typedef struct _THREAD_BASIC_INFORMATION {
 	NTSTATUS                ExitStatus;
 	PVOID                   TebBaseAddress;
@@ -28,7 +30,7 @@ static int bypass_flag = 0;
 void spawn_process(int is_wow64, PVOID pid, PVOID tid, int leave_suspended){
     if(!k32_CreateProcessA){
         get_function_address("kernel32.dll", "CreateProcessA", (void**)&k32_CreateProcessA);
-        if(!k32_CreateProcessA){return;}
+        if(!k32_CreateProcessA){return;}        
     }
 
     // Determine if this is a 32 or 64bit target
@@ -89,10 +91,13 @@ NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHa
 }
 
 void bootstrap_init(void){       
+
+    //get_function_address("kernel32.dll","OutputDebugStringA",(void**)&k32_OutputDebugStringA);
+    //k32_OutputDebugStringA("IN THERE\n");
     char payload[0x1000] = {0x00};
-    if(!getenv("PDXPL")){return;}    
+    if(!getenv("PDXPL")){return;}   
     strcpy(payload,getenv("PDXPL"));    
-    
+       
     // Load Any Additional Modules
     char * token = strtok(payload, ";");
     if(!token){
