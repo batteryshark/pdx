@@ -140,26 +140,24 @@ int inject_process(DWORD target_pid, DWORD target_tid, char* path_to_shim, BOOL 
 		return -1;
 	}
 
-	HANDLE thread_handle = open_thread(target_tid);
-	if(!thread_handle){
-		kill_process_by_pid(target_pid); 			
-		return -1;
-	}
-	// Add LdrLoadDll(..., dll_path, ...) to the APC queue.
-	if (QueueUserAPC((PAPCFUNC)shellcode_addr, thread_handle,(ULONG_PTR)settings_addr) == 0) {
-		printf("[-] Error adding task to APC queue: %ld\n", GetLastError());
-		kill_process_by_pid(target_pid); 
-		return -1;		
-	}
+	if(!leave_suspended){
+		HANDLE thread_handle = open_thread(target_tid);
+		if(!thread_handle){
+			kill_process_by_pid(target_pid); 			
+			return -1;
+		}
+		// Add LdrLoadDll(..., dll_path, ...) to the APC queue.
+		if (QueueUserAPC((PAPCFUNC)shellcode_addr, thread_handle,(ULONG_PTR)settings_addr) == 0) {
+			printf("[-] Error adding task to APC queue: %ld\n", GetLastError());
+			kill_process_by_pid(target_pid); 
+			return -1;		
+		}
 
-	CloseHandle(thread_handle);
-
-	if (!leave_suspended) {	
+		CloseHandle(thread_handle);
 		resume_thread(target_tid);
 	}else{
 		inject_remote_thread(target_pid,shellcode_addr,settings_addr);
 	}
-
 	return 0;
 }
 
