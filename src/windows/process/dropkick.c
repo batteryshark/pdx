@@ -102,9 +102,22 @@ void resume_thread(unsigned int tid){
 	CloseHandle(thread_handle);
 }
 
+void suspend_thread(unsigned int tid){
+	HANDLE thread_handle = open_thread(tid);
+	SuspendThread(thread_handle);
+	CloseHandle(thread_handle);
+}
+
 void kill_process_by_pid(DWORD pid){
 	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
 	TerminateProcess(hProcess,0);
+}
+
+void inject_remote_thread(DWORD target_pid, void* addr, void* arg){
+	HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, target_pid);
+	if(!hProcess){return;}
+	HANDLE threadID = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)addr, arg,0, NULL);
+	CloseHandle(hProcess);
 }
 
 int inject_process(DWORD target_pid, DWORD target_tid, char* path_to_shim, BOOL leave_suspended){
@@ -128,10 +141,12 @@ int inject_process(DWORD target_pid, DWORD target_tid, char* path_to_shim, BOOL 
 	}
 
 	HANDLE thread_handle = open_thread(target_tid);
-
+	if(!thread_handle){
+		kill_process_by_pid(target_pid); 			
+		return -1;
+	}
 	// Add LdrLoadDll(..., dll_path, ...) to the APC queue.
-	if (QueueUserAPC((PAPCFUNC)shellcode_addr, thread_handle,
-		(ULONG_PTR)settings_addr) == 0) {
+	if (QueueUserAPC((PAPCFUNC)shellcode_addr, thread_handle,(ULONG_PTR)settings_addr) == 0) {
 		printf("[-] Error adding task to APC queue: %ld\n", GetLastError());
 		kill_process_by_pid(target_pid); 
 		return -1;		
@@ -139,10 +154,12 @@ int inject_process(DWORD target_pid, DWORD target_tid, char* path_to_shim, BOOL 
 
 	CloseHandle(thread_handle);
 
-	if (!leave_suspended) {
+	if (!leave_suspended) {	
 		resume_thread(target_tid);
+	}else{
+		inject_remote_thread(target_pid,shellcode_addr,settings_addr);
 	}
-	Sleep(800);
+
 	return 0;
 }
 
