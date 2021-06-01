@@ -45,7 +45,7 @@ void spawn_process(int is_wow64, HANDLE pid, HANDLE tid, int leave_suspended){
         strcat(bootstrap_path,BOOTSTRAP_64);
     }
     char cmd[1024] = {0x00};
-    sprintf(cmd,"%s inject %s %d %d %d",loader_exe_path,bootstrap_path,pid,tid,leave_suspended);
+    sprintf(cmd,"\"%s\" inject \"%s\" %d %d %d",loader_exe_path,bootstrap_path,pid,tid,leave_suspended);
 	
     PROCESS_INFORMATION pi;
 	STARTUPINFOA Startup;
