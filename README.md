@@ -6,4 +6,4 @@ It provides services such as environment emulation/spoofing, filesystem redirect
 
 Currently, these libraries support both Windows and Linux (x86 / x64) with Mac support as an eventual step.
 
-Please refer to the Documentation for individual libraries for more details.
+For additional details about each library, please refer to its respective documentation.
