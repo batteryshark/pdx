@@ -249,9 +249,11 @@ void generate_path_info(PPDXPATH sp){
     to_lowercase(sp->original_path);
     #endif
     fix_separators(sp->original_path);   
+    #if defined _WIN32      
     if(strstr(sp->original_path,NT_PREFIX)){
         sp->nt_path = 1;
     }
+    #endif
     char working_path[1024];
     sp->is_home_subpath = 0;
     sp->original_path_exists = path_exists(sp->original_path);
@@ -383,7 +385,9 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
         // If we're using read isolation, always redirect to our paths.
         if(fs_read_isolate){
             free(sp);
+            #if defined _WIN32  
             if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
+            #endif
             return 1;
         }
 
@@ -402,7 +406,9 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
         }
         // Otherwise, just redirect.
         free(sp);
+        #if defined _WIN32  
         if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
+        #endif
         return 1;
     }
 
@@ -440,7 +446,9 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
             delete_path(sp->redirected_path);
         }
         free(sp);
+        #if defined _WIN32  
         if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
+        #endif
         return 1;        
     }
 
@@ -457,6 +465,8 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     }
 
     free(sp);
+    #if defined _WIN32  
     if(!sp->nt_path){strcpy(*redirected_path, *redirected_path+strlen(NT_PREFIX));}
+    #endif
     return 1;
 }
