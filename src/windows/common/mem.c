@@ -17,8 +17,7 @@ static unsigned char hotpatch_stub[] = {
 #else
 #define HOTPATCH_ADDRESS_OFFSET 1
 static unsigned char hotpatch_stub[] = {
-        0xB8, 0x00, 0x00, 0x00, 0x00, // mov eax, [Abs Jump Address]
-        0xFF,0xE0,                    // jmp eax
+        0x68, 0x00, 0x00, 0x00, 0x00, // push [Abs Jump Address]
         0xC3                          // ret
 };
 #endif
