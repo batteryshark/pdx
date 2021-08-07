@@ -310,7 +310,7 @@ NTSTATUS __stdcall x_LdrLoadDll(PWCHAR PathToFile, ULONG *Flags, PUNICODE_STRING
 }
 
 
-int init_library(void){   
+int init_library(void){
 
     if (!inline_hook("ntdll.dll", "NtCreateFile", SYSCALL_STUB_SIZE, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtOpenFile", SYSCALL_STUB_SIZE, (void*)x_NtOpenFile, (void**)&ntdll_NtOpenFile)) { return FALSE; }
@@ -323,7 +323,9 @@ int init_library(void){
     #if __x86_64__
         if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x10, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) { return FALSE; }	
     #else
-        if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0E, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
+    if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0E, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
+    // Use this for Windows 11 - FML
+    // if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0B, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
     #endif
 
 
