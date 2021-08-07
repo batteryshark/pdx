@@ -323,9 +323,7 @@ int init_library(void){
     #if __x86_64__
         if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x10, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) { return FALSE; }	
     #else
-    if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0E, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
-    // Use this for Windows 11 - FML
-    // if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x0B, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
+    if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x08, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
     #endif
 
 
