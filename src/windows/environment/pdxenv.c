@@ -283,22 +283,12 @@ int init_library(void){
     if (!inline_hook("kernel32.dll", "GetVolumeInformationA", 0x15, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetVolumeInformationW", 0x18, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
     #else
-
-    if (!inline_hook("kernel32.dll", "GetDriveTypeA", 0x0F, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetDriveTypeW", 0x0E, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsA", 0x0B, (void*)x_GetLogicalDriveStringsA, (void**)&k32_GetLogicalDriveStringsA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsW", 0x08, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetVolumeInformationA", 0x07, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetVolumeInformationW", 0x0B, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
-    /* These are for Windows 11 */
-    /*
     if (!inline_hook("kernelbase.dll", "GetDriveTypeA", 8, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
     if (!inline_hook("kernelbase.dll", "GetDriveTypeW", 0x0E, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsA", 0x0B, (void*)x_GetLogicalDriveStringsA, (void**)&k32_GetLogicalDriveStringsA)) { return FALSE; }   
-    if (!inline_hook("kernelbase.dll", "GetLogicalDriveStringsW", 0x08, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
-    if (!inline_hook("kernelbase.dll", "GetVolumeInformationA", 0x0c, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
-    if (!inline_hook("kernelbase.dll", "GetVolumeInformationW", 0x0B, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }  
-    */
+    if (!inline_hook("kernelbase.dll", "GetLogicalDriveStringsW", 8, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationA", 0x0C, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationW", 0x0B, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
     #endif
    return 1;
 }
