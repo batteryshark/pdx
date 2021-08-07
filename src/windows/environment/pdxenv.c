@@ -276,12 +276,12 @@ int init_library(void){
     if (!inline_hook("advapi32.dll", "GetUserNameA", SYSCALL_STUB_SIZE, (void*)x_GetUserNameA, (void**)&advapi32_GetUserNameA)) { return FALSE; }
 
     #if __x86_64__
-    if (!inline_hook("kernel32.dll", "GetDriveTypeA", 0x10, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetDriveTypeW", 0x12, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetDriveTypeA", 0x0D, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetDriveTypeW", 0x12, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsA", 0x14, (void*)x_GetLogicalDriveStringsA, (void**)&k32_GetLogicalDriveStringsA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsW", 0x13, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetVolumeInformationA", 0x15, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
-    if (!inline_hook("kernel32.dll", "GetVolumeInformationW", 0x18, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetLogicalDriveStringsW", 0x13, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationA", 0x15, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationW", 0x18, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
     #else
     if (!inline_hook("kernelbase.dll", "GetDriveTypeA", 8, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
     if (!inline_hook("kernelbase.dll", "GetDriveTypeW", 0x0E, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
