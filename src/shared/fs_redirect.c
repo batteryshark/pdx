@@ -374,8 +374,6 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     PPDXPATH sp = calloc(1,sizeof(PDXPATH));
     strcpy(sp->original_path,in_abspath);
     generate_path_info(sp);
-    // Check ignore list again on redirected paths and return at this point. 
-    if(path_ignored(sp->redirected_path)){return 0;}     
     *redirected_path = sp->redirected_path;
     print_sp_info(sp, is_directory, is_read, is_write, fail_if_exist, fail_if_not_exist);
     // 'Fix' for access case
