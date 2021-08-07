@@ -12,8 +12,8 @@ typedef UINT __stdcall tGetDriveTypeA(LPCSTR lpRootPathName);
 typedef UINT __stdcall tGetDriveTypeW(LPCWSTR lpRootPathName);
 typedef DWORD __stdcall tGetLogicalDriveStringsA(DWORD nBufferLength, LPSTR lpBuffer);
 typedef DWORD __stdcall tGetLogicalDriveStringsW(DWORD nBufferLength, LPWSTR lpBuffer);
-typedef BOOL tGetVolumeInformationA(LPCSTR lpRootPathName,LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize);
-typedef BOOL tGetVolumeInformationW(LPCWSTR lpRootPathName,LPWSTR lpVolumeNameBuffer,DWORD nVolumeNameSize,LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength,LPDWORD lpFileSystemFlags,LPWSTR lpFileSystemNameBuffer,DWORD nFileSystemNameSize);
+typedef BOOL __stdcall tGetVolumeInformationA(LPCSTR lpRootPathName,LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize);
+typedef BOOL __stdcall tGetVolumeInformationW(LPCWSTR lpRootPathName,LPWSTR lpVolumeNameBuffer,DWORD nVolumeNameSize,LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength,LPDWORD lpFileSystemFlags,LPWSTR lpFileSystemNameBuffer,DWORD nFileSystemNameSize);
 
 static tGetUserNameA* advapi32_GetUserNameA = NULL;
 static tGetUserNameW* advapi32_GetUserNameW = NULL;
@@ -26,6 +26,8 @@ tGetVolumeInformationW* k32_GetVolumeInformationW = NULL;
 
 static char path_to_config_file[1024] = {0x00};
 static dictionary* config = NULL;
+
+#define LOWERCASE(x) if(x>=65&&x<=90) x+=32
 
 void get_config_file_path(){
     if(getenv("PDXENV")){
@@ -64,6 +66,8 @@ const char* get_username(){
 }
 
 int get_drive_map_info(char root_letter,PDRIVE_MAP_ENTRY map_entry){
+    
+    LOWERCASE(root_letter);        
     if(!config){load_config();}        
     if(!config){return 0;}
     
@@ -198,7 +202,7 @@ DWORD __stdcall x_GetLogicalDriveStringsW(DWORD nBufferLength, LPWSTR lpBuffer){
 }
 
 
-BOOL x_GetVolumeInformationA(LPCSTR lpRootPathName,LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize){
+BOOL __stdcall x_GetVolumeInformationA(LPCSTR lpRootPathName,LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize, LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength, LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize){
 	DRIVE_MAP_ENTRY dme;
     if(!get_drive_map_info(lpRootPathName[0],&dme)){
         return k32_GetVolumeInformationA(lpRootPathName,lpVolumeNameBuffer, nVolumeNameSize, lpVolumeSerialNumber,lpMaximumComponentLength, lpFileSystemFlags, lpFileSystemNameBuffer, nFileSystemNameSize);
@@ -223,11 +227,12 @@ BOOL x_GetVolumeInformationA(LPCSTR lpRootPathName,LPSTR lpVolumeNameBuffer, DWO
     if(lpFileSystemNameBuffer && nFileSystemNameSize > strlen(dme.volume_filesystem)){
         strcpy(lpFileSystemNameBuffer,dme.volume_filesystem);
     }
+
 	
 	return TRUE;
 }
 
-BOOL x_GetVolumeInformationW(LPCWSTR lpRootPathName,LPWSTR lpVolumeNameBuffer,DWORD nVolumeNameSize,LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength,LPDWORD lpFileSystemFlags,LPWSTR lpFileSystemNameBuffer,DWORD nFileSystemNameSize){
+BOOL __stdcall x_GetVolumeInformationW(LPCWSTR lpRootPathName,LPWSTR lpVolumeNameBuffer,DWORD nVolumeNameSize,LPDWORD lpVolumeSerialNumber,LPDWORD lpMaximumComponentLength,LPDWORD lpFileSystemFlags,LPWSTR lpFileSystemNameBuffer,DWORD nFileSystemNameSize){
 	DRIVE_MAP_ENTRY dme;
     if(!get_drive_map_info(lpRootPathName[0],&dme)){
         return k32_GetVolumeInformationW(lpRootPathName,lpVolumeNameBuffer,nVolumeNameSize,lpVolumeSerialNumber,lpMaximumComponentLength,lpFileSystemFlags,lpFileSystemNameBuffer,nFileSystemNameSize);
@@ -278,12 +283,22 @@ int init_library(void){
     if (!inline_hook("kernel32.dll", "GetVolumeInformationA", 0x15, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetVolumeInformationW", 0x18, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
     #else
+
     if (!inline_hook("kernel32.dll", "GetDriveTypeA", 0x0F, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetDriveTypeW", 0x0E, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsA", 0x0B, (void*)x_GetLogicalDriveStringsA, (void**)&k32_GetLogicalDriveStringsA)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsW", 0x08, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetVolumeInformationA", 0x07, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
     if (!inline_hook("kernel32.dll", "GetVolumeInformationW", 0x0B, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }   
+    /* These are for Windows 11 */
+    /*
+    if (!inline_hook("kernelbase.dll", "GetDriveTypeA", 8, (void*)x_GetDriveTypeA, (void**)&k32_GetDriveTypeA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetDriveTypeW", 0x0E, (void*)x_GetDriveTypeW, (void**)&k32_GetDriveTypeW)) { return FALSE; }   
+    if (!inline_hook("kernel32.dll", "GetLogicalDriveStringsA", 0x0B, (void*)x_GetLogicalDriveStringsA, (void**)&k32_GetLogicalDriveStringsA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetLogicalDriveStringsW", 0x08, (void*)x_GetLogicalDriveStringsW, (void**)&k32_GetLogicalDriveStringsW)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationA", 0x0c, (void*)x_GetVolumeInformationA, (void**)&k32_GetVolumeInformationA)) { return FALSE; }   
+    if (!inline_hook("kernelbase.dll", "GetVolumeInformationW", 0x0B, (void*)x_GetVolumeInformationW, (void**)&k32_GetVolumeInformationW)) { return FALSE; }  
+    */
     #endif
    return 1;
 }
