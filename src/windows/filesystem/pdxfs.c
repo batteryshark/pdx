@@ -98,12 +98,10 @@ int fs_redirect_nt(wchar_t* src_buffer, unsigned int src_len, HANDLE root_handle
 
 // Bindings
 NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJECT_ATTRIBUTES ObjectAttributes, PIO_STATUS_BLOCK IoStatusBlock, PLARGE_INTEGER AllocationSize, ULONG FileAttributes, ULONG ShareAccess, ULONG CreateDisposition, ULONG CreateOptions, PVOID EaBuffer, ULONG EaLength) {
-
+    //DBG_print_buffer(ntdll_NtCreateFile,0x16);
     if (!(DesiredAccess & FLAG_BYPASS) && ObjectAttributes && ObjectAttributes->ObjectName && ObjectAttributes->ObjectName->Length) {
 
         UNICODE_STRING redirected_path = {0};
-
-                
         if (fs_redirect_nt(ObjectAttributes->ObjectName->Buffer, 
                 ObjectAttributes->ObjectName->Length, 
                 ObjectAttributes->RootDirectory, 
@@ -131,7 +129,9 @@ NTSTATUS __stdcall x_NtCreateFile(PHANDLE FileHandle, DWORD DesiredAccess, POBJE
     if(DesiredAccess & FLAG_BYPASS){
         DesiredAccess &= ~FLAG_BYPASS;
     }
+
     return ntdll_NtCreateFile(FileHandle, DesiredAccess, ObjectAttributes, IoStatusBlock, AllocationSize, FileAttributes, ShareAccess, CreateDisposition, CreateOptions, EaBuffer, EaLength);
+    
 }
 
 
@@ -312,7 +312,7 @@ NTSTATUS __stdcall x_LdrLoadDll(PWCHAR PathToFile, ULONG *Flags, PUNICODE_STRING
 
 int init_library(void){
 
-    if (!inline_hook("ntdll.dll", "NtCreateFile", SYSCALL_STUB_SIZE, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
+
     if (!inline_hook("ntdll.dll", "NtOpenFile", SYSCALL_STUB_SIZE, (void*)x_NtOpenFile, (void**)&ntdll_NtOpenFile)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtOpenDirectoryObject", SYSCALL_STUB_SIZE, (void*)x_NtOpenDirectoryObject, (void**)&ntdll_NtOpenDirectoryObject)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtCreateDirectoryObject", SYSCALL_STUB_SIZE, (void*)x_NtCreateDirectoryObject, (void**)&ntdll_NtCreateDirectoryObject)) { return FALSE; }
@@ -321,8 +321,29 @@ int init_library(void){
     if (!inline_hook("ntdll.dll", "NtQueryFullAttributesFile", SYSCALL_STUB_SIZE, (void*)x_NtQueryFullAttributesFile, (void**)&ntdll_NtQueryFullAttributesFile)) { return FALSE; }    
 
     #if __x86_64__
+
+    unsigned char expected_syscall_prologue[] = {0x4C, 0x8B, 0xD1, 0xB8, 0x55, 0x00, 0x00, 0x00};
+    get_function_address("ntdll.dll","NtCreateFile",(void**)&ntdll_NtCreateFile);
+    unsigned char* test_prologue = (unsigned char*)ntdll_NtCreateFile;
+    if(!memcmp(test_prologue,expected_syscall_prologue,sizeof(expected_syscall_prologue))){
+    if (!inline_hook("ntdll.dll", "NtCreateFile", SYSCALL_STUB_SIZE, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
+    }else{
+    if (!inline_hook("ntdll.dll", "NtCreateFile", 13, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }
+    }
+        
         if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x10, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) { return FALSE; }	
     #else
+    // There's some psychotic shimming going on with Windows 11 that we have to account for...
+    unsigned char expected_syscall_prologue[] = {0xB8, 0x55, 0x00, 0x00, 0x00};
+    get_function_address("ntdll.dll","NtCreateFile",(void**)&ntdll_NtCreateFile);
+    unsigned char* test_prologue = (unsigned char*)ntdll_NtCreateFile;
+    
+    if(!memcmp(test_prologue,expected_syscall_prologue,sizeof(expected_syscall_prologue))){
+        if (!inline_hook("ntdll.dll", "NtCreateFile", 0x0A, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }     
+    }else{
+        if (!inline_hook("ntdll.dll", "NtCreateFile", 0x08, (void*)x_NtCreateFile, (void**)&ntdll_NtCreateFile)) { return FALSE; }     
+    }
+   
     if (!inline_hook("ntdll.dll", "LdrLoadDll", 0x08, (void*)x_LdrLoadDll, (void**)&ntdll_LdrLoadDll)) {  return FALSE; }
     #endif
 
