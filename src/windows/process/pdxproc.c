@@ -1,10 +1,8 @@
 #include "../common/mem.h"
 #include "../common/ntmin/ntmin.h"
 
-#define LOADER_EXE_32 "dropkick32.exe"
-#define LOADER_EXE_64 "dropkick64.exe"
-#define BOOTSTRAP_32 "pdxproc32.dll"
-#define BOOTSTRAP_64 "pdxproc64.dll"
+#define LOADER_EXE_32 "VXBootstrap32.exe"
+#define LOADER_EXE_64 "VXBootstrap64.exe"
 
 typedef void tOutputDebugStringA(const char* lpOutputString);
 
@@ -28,25 +26,22 @@ void spawn_process(int is_wow64, HANDLE pid, HANDLE tid, int leave_suspended){
     }
 
     // Determine if this is a 32 or 64bit target
-    char loader_exe_path[1024] = {0x00};
+    char bootstrap_exe_path[1024] = {0x00};
     char bootstrap_path[1024] = {0x00};
     if(getenv("PDXPROC")){
-        strcpy(loader_exe_path,getenv("PDXPROC"));
-        strcat(loader_exe_path,"\\");
-        strcpy(bootstrap_path,getenv("PDXPROC"));
-        strcat(bootstrap_path,"\\");
+        strcpy(bootstrap_exe_path,getenv("PDXPROC"));
+        strcat(bootstrap_exe_path,"\\");
     }
 
+    
     if(is_wow64){
-        strcat(loader_exe_path,LOADER_EXE_32);
-        strcat(bootstrap_path,BOOTSTRAP_32);
+        strcat(bootstrap_exe_path,LOADER_EXE_32);
     }else{
-        strcat(loader_exe_path,LOADER_EXE_64);
-        strcat(bootstrap_path,BOOTSTRAP_64);
+        strcat(bootstrap_exe_path,LOADER_EXE_64);
     }
     char cmd[1024] = {0x00};
-    sprintf(cmd,"\"%s\" inject \"%s\" %d %d %d",loader_exe_path,bootstrap_path,pid,tid,leave_suspended);
-	
+    sprintf(cmd,"\"%s\" vxcmd=inject vxpid=%d vxtid=%d vxls=%d",bootstrap_exe_path,pid,tid,leave_suspended);
+    //k32_OutputDebugStringA(cmd);
     PROCESS_INFORMATION pi;
 	STARTUPINFOA Startup;
 	memset(&Startup,0x00, sizeof(Startup));
@@ -56,6 +51,22 @@ void spawn_process(int is_wow64, HANDLE pid, HANDLE tid, int leave_suspended){
     bypass_flag = 0;
 }
 
+int ProcessIsWoW64(HANDLE hProcess){
+    USHORT ProcessMachine = 0;
+    USHORT NativeMachine = 0;
+    RtlWow64GetProcessMachines(hProcess, &ProcessMachine, &NativeMachine);
+    return (ProcessMachine != 0);
+}
+
+void FormatArchSpecificPreload(char* path){
+    char* ext = strstr(path,".dlldynamic");
+    if(!ext){return;}
+    if(ProcessIsWoW64(NtCurrentProcess())){
+        strcpy(ext,"32.dll");
+    }else{
+        strcpy(ext,"64.dll");
+    }
+}
 
 NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHandle, ACCESS_MASK ProcessDesiredAccess, ACCESS_MASK ThreadDesiredAccess, POBJECT_ATTRIBUTES ProcessObjectAttributes, POBJECT_ATTRIBUTES ThreadObjectAttributes, ULONG ProcessFlags, ULONG ThreadFlags, PRTL_USER_PROCESS_PARAMETERS ProcessParameters, PVOID CreateInfo, PVOID AttributeList) {
     if(bypass_flag){
@@ -84,30 +95,10 @@ NTSTATUS __stdcall x_NtCreateUserProcess(PHANDLE ProcessHandle, PHANDLE ThreadHa
     return status;
 }
 
-void bootstrap_init(void){       
 
-  //  get_function_address("kernel32.dll","OutputDebugStringA",(void**)&k32_OutputDebugStringA);
-
-    char payload[0x1000] = {0x00};
-    if(!getenv("PDXPL")){return;}   
-    strcpy(payload,getenv("PDXPL"));    
-       
-    // Load Any Additional Modules
-    char * token = strtok(payload, ";");
-    if(!token){
-        void* hLibrary = NULL;
-        load_library(payload,&hLibrary);
-    }else{
-        while( token != NULL ) {
-            void* hLibrary = NULL;          
-            load_library(token,&hLibrary);
-            token = strtok(NULL, ";");
-        }         
-    }
-}
 
 void init_library(){
-    bootstrap_init();
+   //get_function_address("kernel32.dll","OutputDebugStringA",(void**)&k32_OutputDebugStringA);
     inline_hook("ntdll.dll", "NtCreateUserProcess", SYSCALL_STUB_SIZE, (void*)x_NtCreateUserProcess, (void**)&ntdll_NtCreateUserProcess);            
 }
 
