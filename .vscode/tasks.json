@@ -23,7 +23,7 @@
         {
             "label": "**Create Release [Windows]**",
             "type": "shell",
-            "command": "python3 tools/rlsgen.py pdx_windows pdxfs32.dll pdxfs64.dll pdxenv32.dll pdxenv64.dll pdxreg32.dll pdxreg64.dll pdxproc32.dll pdxproc64.dll dropkick32.exe dropkick64.exe",
+            "command": "python3 tools/rlsgen.py pdx_windows pdxfs32.dll pdxfs64.dll pdxenv32.dll pdxenv64.dll pdxreg32.dll pdxreg64.dll pdxproc32.dll pdxproc64.dll",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -43,8 +43,6 @@
             "dependsOn": [
                 "PDXProc Library [Windows 64-bit]",
                 "PDXProc Library [Windows 32-bit]",
-                "DropKick Loader [Windows 64-bit]",
-                "DropKick Loader [Windows 32-bit]",
                 "PDXReg Library [Windows 64-bit]",
                 "PDXReg Library [Windows 32-bit]",
                 "PDXEnv Library [Windows 64-bit]",
@@ -147,48 +145,6 @@
                 "isDefault": true
             }
         },
-        {
-            "label": "DropKick Loader [Windows 64-bit]",
-            "type": "shell",
-            "dependsOn":["**Generate Build Path**"],
-            "command": [
-                "x86_64-w64-mingw32-gcc",
-                "-fshort-wchar",
-                "${workspaceFolder}/src/windows/process/dropkick.c",
-                "-static",
-                "-static-libgcc",
-                "-o ${workspaceFolder}/bin/dropkick64.exe"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "DropKick Loader [Windows 32-bit]",
-            "type": "shell",
-            "dependsOn":["**Generate Build Path**"],
-            "command": [
-                "i686-w64-mingw32-gcc",
-                "-fshort-wchar",
-                "${workspaceFolder}/src/windows/process/dropkick.c",
-                "-static",
-                "-static-libgcc",
-                "-o ${workspaceFolder}/bin/dropkick32.exe"
-            ],
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },			   
         {
             "label": "PDXReg Library [Windows 64-bit]",
             "type": "shell",

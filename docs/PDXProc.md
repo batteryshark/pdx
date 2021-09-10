@@ -17,11 +17,11 @@ There are a few environment variables that it references:
 - LD_PRELOAD: Use this as the entry-point for injection of this library.
 
 Note: In the event that a process will spawn a child that differs from the parent architecture, multiple 
-sets of preloaded libraries can be specified (e.g. PDXPL=/path/to/pdxproc64.so:/path/to/pdxproc32.so)
+sets of preloaded libraries can be specified (e.g. PDXPL=/path/to/pdxproc64.so;/path/to/pdxproc32.so)
 
 Example Usage: 
 ```
-PDXPL=/path/to/pdxproc.so:/path/to/library_1.so LD_PRELOAD=/path/to/pdxproc.so /bin/ls
+PDXPL=/path/to/pdxproc.so;/path/to/library_1.so LD_PRELOAD=/path/to/pdxproc.so /bin/ls
 ```
 
 Windows
