@@ -23,7 +23,7 @@
         {
             "label": "**Create Release [Windows]**",
             "type": "shell",
-            "command": "python3 tools/rlsgen.py pdx_windows pdxfs32.dll pdxfs64.dll pdxenv32.dll pdxenv64.dll pdxreg32.dll pdxreg64.dll pdxproc32.dll pdxproc64.dll",
+            "command": "python tools/rlsgen.py batteryshark pdx pdx_windows pdxfs32.dll pdxfs64.dll pdxenv32.dll pdxenv64.dll pdxreg32.dll pdxreg64.dll pdxproc32.dll pdxproc64.dll",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -32,7 +32,7 @@
         {
             "label": "**Create Release [Linux]**",
             "type": "shell",
-            "command": "python3 tools/rlsgen.py  pdx_linux pdxfs32.so pdxfs64.so pdxenv32.so pdxenv64.so pdxproc32.so pdxproc64.so",
+            "command": "python tools/rlsgen.py  batteryshark pdx pdx_linux pdxfs32.so pdxfs64.so pdxenv32.so pdxenv64.so pdxproc32.so pdxproc64.so",
             "group": {
                 "kind": "build",
                 "isDefault": true
