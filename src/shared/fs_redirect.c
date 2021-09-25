@@ -398,8 +398,8 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
             return 0;            
         }
 
-        // If the redirected path does not exist, but the original path does, bypass (fallback to original).
-        if(!sp->redirected_path_exists && sp->original_path_exists){
+        // If this isn't a home subpath, and the redirected path does not exist, but the original path does, bypass (fallback to original).
+        if(!sp->is_home_subpath && !sp->redirected_path_exists && sp->original_path_exists){
             free(sp);
             free(*redirected_path);
             return 0;
@@ -423,10 +423,10 @@ int fs_redirect(char* in_abspath, int is_directory, int is_read, int is_write, i
     }
     #endif
 
-    // If the real write path already exists, we're going to just bypass and write to the real path
+    // If this isn't a home subpath, and the real write path already exists, we're going to just bypass and write to the real path
     // We may end up reverting this later or making it a configuration option
     if(!fs_write_isolate){
-        if(sp->original_path_exists && strcmp(sp->original_path,sp->redirected_path)){
+        if(!sp->is_home_subpath && sp->original_path_exists && strcmp(sp->original_path,sp->redirected_path)){
             free(sp);
             free(*redirected_path);
             return 0;        
