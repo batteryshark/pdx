@@ -127,7 +127,7 @@ NTSTATUS NTAPI x_NtQueryMultipleValueKey(HANDLE KeyHandle, PKEY_VALUE_ENTRY Valu
     return ntdll_NtQueryMultipleValueKey(KeyHandle,ValueEntries,EntryCount,ValueBuffer,BufferLength,RequiredBufferLength);
 }
 
-NTSTATUS NTAPI x_NtClose(HANDLE ObjectHandle){    
+NTSTATUS NTAPI x_NtClose(HANDLE ObjectHandle){   
     handler_nt_close_registry_key(ObjectHandle);
     return ntdll_NtClose(ObjectHandle);
 }
@@ -140,7 +140,7 @@ __declspec(dllexport) void imoldreg(){};
 int init_library(void){   
     set_is_elevated();
     // Perform any Syscall Hooks we Need at This Level
-    if (!inline_hook("ntdll.dll", "NtClose", SYSCALL_STUB_SIZE, (void*)x_NtClose, (void**)&ntdll_NtClose)) { return FALSE; }
+
     if (!inline_hook("ntdll.dll", "NtCreateKey", SYSCALL_STUB_SIZE, (void*)x_NtCreateKey, (void**)&ntdll_NtCreateKey)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtCreateKeyTransacted", SYSCALL_STUB_SIZE, (void*)x_NtCreateKeyTransacted, (void**)&ntdll_NtCreateKeyTransacted)) { return FALSE; }
     if (!inline_hook("ntdll.dll", "NtOpenKey", SYSCALL_STUB_SIZE, (void*)x_NtOpenKey, (void**)&ntdll_NtOpenKey)) { return FALSE; }
@@ -153,8 +153,19 @@ int init_library(void){
     if (!inline_hook("ntdll.dll", "NtSetInformationKey", SYSCALL_STUB_SIZE, (void*)x_NtSetInformationKey, (void**)&ntdll_NtSetInformationKey)) { return FALSE; }                
     
 #if __x86_64__
-    if (!inline_hook("ntdll.dll", "NtSetValueKey", SYSCALL_STUB_SIZE, (void*)x_NtSetValueKey, (void**)&ntdll_NtSetValueKey)) { return FALSE; }  
+
+     unsigned char expected_syscall_prologue[] = {0x4C, 0x8B, 0xD1, 0xB8};
+    get_function_address("ntdll.dll","NtSetValueKey",(void**)&ntdll_NtSetValueKey);
+    unsigned char* test_prologue = (unsigned char*)ntdll_NtSetValueKey;
+ 
+    if(!memcmp(test_prologue,expected_syscall_prologue,sizeof(expected_syscall_prologue))){
+    if (!inline_hook("ntdll.dll", "NtSetValueKey", SYSCALL_STUB_SIZE, (void*)x_NtSetValueKey, (void**)&ntdll_NtSetValueKey)) { return FALSE; }
+    }else{
+    if (!inline_hook("ntdll.dll", "NtSetValueKey", 0x10, (void*)x_NtSetValueKey, (void**)&ntdll_NtSetValueKey)) { return FALSE; }
+    }
+
 #else
+    if (!inline_hook("ntdll.dll", "NtClose", SYSCALL_STUB_SIZE, (void*)x_NtClose, (void**)&ntdll_NtClose)) { return FALSE; }
     // apphelp.dll syscall hooks because it's a big frickin meanie!
     if(is_elevated_process()){ 
     if (!inline_hook("ntdll.dll", "NtSetValueKey", 0x24, (void*)x_NtSetValueKey, (void**)&ntdll_NtSetValueKey)) { return FALSE; }  
@@ -163,6 +174,8 @@ int init_library(void){
     }
           
 #endif
+          
+
     if (!inline_hook("ntdll.dll", "NtQueryValueKey", SYSCALL_STUB_SIZE, (void*)x_NtQueryValueKey, (void**)&ntdll_NtQueryValueKey)) { return FALSE; }                
     if (!inline_hook("ntdll.dll", "NtDeleteValueKey", SYSCALL_STUB_SIZE, (void*)x_NtDeleteValueKey, (void**)&ntdll_NtDeleteValueKey)) { return FALSE; }                
     if (!inline_hook("ntdll.dll", "NtEnumerateKey", SYSCALL_STUB_SIZE, (void*)x_NtEnumerateKey, (void**)&ntdll_NtEnumerateKey)) { return FALSE; }                
